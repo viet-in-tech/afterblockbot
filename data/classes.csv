@@ -1,0 +1,28 @@
+name,day,block_start,block_end,grade_min,grade_max,capacity,type
+Youth Orchestra,Monday,BLK1,BLK2,1,4,15,Music
+Group Piano,Thursday,BLK1,BLK1,1,4,8,Music
+Beginning Hip Hop Dance,Wednesday,BLK1,BLK1,1,4,12,Dance
+Beginning Basketball,Tuesday,BLK2,BLK2,1,4,12,Athletic
+Beginning Chinese,Thursday,BLK2,BLK2,1,6,10,Academic
+Euro-Gymnastics,Friday,BLK2,BLK2,1,4,10,Athletic
+Taekwondo,Monday,BLK3,BLK3,1,8,15,Athletic
+Athletic Training,Thursday,BLK3,BLK3,1,8,12,Athletic
+Penmanship,Friday,BLK1,BLK1,1,4,10,Academic
+Music Practice,Tuesday,BLK3,BLK3,1,8,20,Music
+Music Practice,Wednesday,BLK3,BLK3,1,8,20,Music
+Music Practice,Friday,BLK1,BLK1,1,8,20,Music
+Math Sprints,Tuesday,BLK1,BLK1,1,4,10,Academic
+Chinese Lab,Tuesday,BLK3,BLK3,1,8,10,Academic
+Library Reading,Wednesday,BLK0,BLK0,1,8,15,Academic
+Private Violin Lesson,Wednesday,BLK0,BLK0,1,8,6,Music
+Interest Clubs,Wednesday,BLK2,BLK2,1,4,20,Club
+Show and Play,Wednesday,BLK2,BLK2,5,8,20,Club
+Fun Friday,Friday,BLK3,BLK3,1,8,30,Club
+Homework,Tuesday,BLK1,BLK1,1,8,20,Academic
+Homework,Wednesday,BLK3,BLK3,1,8,20,Academic
+Homework,Monday,BLK2,BLK2,1,8,20,Academic
+Cafe Study,Monday,BLK1,BLK3,5,8,15,Study
+Cafe Study,Tuesday,BLK1,BLK3,5,8,15,Study
+Cafe Study,Thursday,BLK1,BLK3,5,8,15,Study
+Advanced Basketball,Tuesday,BLK3,BLK3,5,8,12,Athletic
+Advanced Basketball,Thursday,BLK3,BLK3,5,8,12,Athletic
