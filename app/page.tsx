@@ -244,25 +244,25 @@ export default function Home() {
                     value={studentForm.firstName}
                     onChange={e => setStudentForm(f => ({ ...f, firstName: e.target.value }))}
                     placeholder="First name"
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   />
                   <input
                     value={studentForm.lastName}
                     onChange={e => setStudentForm(f => ({ ...f, lastName: e.target.value }))}
                     placeholder="Last name"
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Grade</label>
-                    <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>Grade {g}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Pickup</label>
-                    <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       <option value="BLK0">3:30 PM</option>
                       <option value="BLK1">4:30 PM</option>
                       <option value="BLK2">5:30 PM</option>
@@ -285,7 +285,7 @@ export default function Home() {
                   value={studentForm.goals}
                   onChange={e => setStudentForm(f => ({ ...f, goals: e.target.value }))}
                   placeholder="Academic goals (e.g. reading, math)"
-                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
                 <button onClick={addStudent} disabled={!studentForm.firstName.trim() || !studentForm.lastName.trim()}
                   className="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-indigo-100 transition">
@@ -323,18 +323,18 @@ export default function Home() {
                   value={classForm.name}
                   onChange={e => setClassForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="Class name (e.g. Group Piano)"
-                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Day</label>
-                    <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {DAYS.map(d => <option key={d}>{d}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
-                    <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {CLASS_TYPES.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
@@ -342,13 +342,13 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Start block</label>
-                    <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">End block</label>
-                    <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
                     </select>
                   </div>
@@ -356,20 +356,20 @@ export default function Home() {
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Min grade</label>
-                    <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Max grade</label>
-                    <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                       {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-0.5 block">Capacity</label>
                     <input type="number" min={1} value={classForm.capacity} onChange={e => setClassForm(f => ({ ...f, capacity: e.target.value }))}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                      className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                   </div>
                 </div>
                 {classError && <p className="text-xs text-red-500">{classError}</p>}
@@ -482,7 +482,7 @@ export default function Home() {
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
                 placeholder={schedule ? 'e.g. "Move Emma out of Basketball on Tuesday"' : 'Generate a schedule first...'}
                 disabled={!schedule || loading}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-50 disabled:text-gray-400"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-50 disabled:text-gray-400"
               />
               <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition">
