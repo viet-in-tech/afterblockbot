@@ -464,7 +464,11 @@ export default function Home() {
         </div>
         <div className="flex-1">
           <h1 className="text-base font-bold tracking-[-0.02em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent">ClassMaker AI</h1>
-          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">Feed the AI Agent all the class info, and watch in awe as it makes a Master Schedule in seconds!</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] text-white/35 tracking-wide uppercase">(1) Feed AI Agent your class info...</span>
+            <span className="text-white/20 text-[10px]">→</span>
+            <span className="text-[10px] text-white/35 tracking-wide uppercase">(2) AI Agent makes Master Schedule - in seconds!!!</span>
+          </div>
         </div>
         <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-white/30 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
