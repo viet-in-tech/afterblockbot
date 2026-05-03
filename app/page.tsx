@@ -104,13 +104,14 @@ function blockLabel(key: string) {
 }
 
 function StepCard({
-  step, chip, title, description, open, onToggle, children, flush,
+  step, chip, title, description, open, onToggle, children, flush, accentBar,
 }: {
   step: number; chip: string; title: string; description: string;
-  open: boolean; onToggle: () => void; children: React.ReactNode; flush?: boolean;
+  open: boolean; onToggle: () => void; children: React.ReactNode; flush?: boolean; accentBar?: string;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+      {accentBar && <div className={`h-1 w-full ${accentBar}`} />}
       <button onClick={onToggle} className="w-full px-5 pt-4 pb-3.5 flex items-center justify-between hover:bg-gray-50/70 transition text-left">
         <div className="flex items-center gap-3 min-w-0">
           <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 border ${chip}`}>{step}</span>
@@ -146,6 +147,24 @@ function buildMasterSchedule(students: StudentSchedule[]): Record<DayKey, Record
     }
   }
   return result;
+}
+
+function downloadMasterScheduleCSV(students: StudentSchedule[]) {
+  const master = buildMasterSchedule(students);
+  const rows: string[] = ['Day,Block,Time,Class,Students'];
+  for (const day of DAYS) {
+    for (const { key, time } of BLOCKS) {
+      const cell = master[day]?.[key] ?? {};
+      for (const [activity, names] of Object.entries(cell)) {
+        rows.push(`${day},${key},${time},"${activity}","${names.join('; ')}"`);
+      }
+    }
+  }
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'master_schedule.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 function ModeToggle({ mode, onChange }: { mode: 'csv' | 'manual'; onChange: (m: 'csv' | 'manual') => void }) {
@@ -408,13 +427,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f7]">
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-r from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] text-white px-8 py-4 flex items-center gap-4 shadow-2xl border-b border-white/5 backdrop-blur-xl">
-        <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shrink-0">
+        <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-red-500 via-violet-500 to-blue-500 flex items-center justify-center shadow-lg shrink-0">
           <span className="text-white text-base leading-none">✦</span>
         </div>
         <div className="flex-1">
-          <h1 className="text-base font-bold tracking-[-0.02em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent">ClassMaker.ai</h1>
-          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">AI Agent that quickly creates a master schedule for K-12 school and afterschool classes</p>
+          <h1 className="text-base font-bold tracking-[-0.02em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent">ClassMaker AI</h1>
+          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">AI Agent that creates a class Master Schedule in seconds!</p>
         </div>
         <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-white/30 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -422,14 +442,50 @@ export default function Home() {
         </span>
       </header>
 
+      {/* Hero — Every student, perfectly placed */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 py-12">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-[#1d1d1f] mb-3">Every student, perfectly placed.</h2>
+            <p className="text-gray-500 text-base max-w-2xl mx-auto leading-relaxed">ClassMaker AI helps afterschool programs, enrichment centers, and school coordinators build smart weekly schedules in seconds — no spreadsheets, no back-and-forth.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <div className="rounded-2xl p-6 border-t-4 border-red-500 bg-red-50">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center mb-4"><span className="text-red-500 text-lg">⚡</span></div>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">From roster to schedule in seconds</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">Enter your students and available classes — manually or by uploading a CSV. The AI reads each student&apos;s grade, pickup time, and activity preferences, then builds a complete weekly schedule that respects every constraint automatically.</p>
+            </div>
+            <div className="rounded-2xl p-6 border-t-4 border-violet-500 bg-violet-50">
+              <div className="w-10 h-10 rounded-2xl bg-violet-100 flex items-center justify-center mb-4"><span className="text-violet-500 text-lg">✦</span></div>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">Adjust with plain English</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">Need to make a change? Just type it. Say &ldquo;Move Emma out of Basketball on Tuesday&rdquo; or &ldquo;Give all 3rd graders a study block on Mondays&rdquo; — the AI updates the schedule instantly, no re-entering data required.</p>
+            </div>
+            <div className="rounded-2xl p-6 border-t-4 border-teal-500 bg-teal-50">
+              <div className="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center mb-4"><span className="text-teal-500 text-lg">🗓️</span></div>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">See the full picture</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">View each student&apos;s personal weekly schedule, then switch to the Master Schedule to see every class running across the whole week — so coordinators and principals always have the full picture.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {['For Afterschool Programs', 'For Enrichment Centers', 'For Principals & Coordinators', 'Manual or CSV Input', 'AI-Generated & Editable'].map(tag => (
+              <span key={tag} className="text-[11px] text-gray-500 border border-gray-200 px-3 py-1 rounded-full bg-gray-50">{tag}</span>
+            ))}
+          </div>
+          <div className="text-center">
+            <p className="text-base font-semibold text-[#1d1d1f] tracking-[-0.01em]">Ready to begin? Start below ↓</p>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-3">
 
-        {/* STEP 1 — Customize Preferences */}
+        {/* STEP 1 — AI Agent Master Schedule Preferences */}
         <StepCard
           step={1}
-          chip="bg-emerald-50 text-emerald-600 border-emerald-100"
-          title="Tell the ClassMaker AI Agent preferences for your master schedule."
-          description="AI-guided or manual — set activity preferences & class types"
+          chip="bg-red-500 text-white border-red-600"
+          accentBar="bg-red-500"
+          title="AI Agent : Master Schedule Preferences"
+          description="Tell the AI Agent what you prefer in the master schedule."
           open={showCustomize}
           onToggle={() => setShowCustomize(v => !v)}
         >
@@ -519,9 +575,10 @@ export default function Home() {
         {/* STEP 2 — Students */}
         <StepCard
           step={2}
-          chip="bg-violet-50 text-violet-600 border-violet-100"
-          title="Manually add the information for each student, or upload a CSV with relevant student data."
-          description={studentMode === 'manual' ? `${manualStudents.length} student${manualStudents.length !== 1 ? 's' : ''} added` : studentsCSV ? 'CSV loaded' : 'No file uploaded yet'}
+          chip="bg-orange-500 text-white border-orange-600"
+          accentBar="bg-orange-500"
+          title="Add Student Info"
+          description={studentMode === 'manual' ? `${manualStudents.length} student${manualStudents.length !== 1 ? 's' : ''} added` : studentsCSV ? 'CSV loaded' : 'Add the Student Info either Manually or via CSV'}
           open={showStudents}
           onToggle={() => setShowStudents(v => !v)}
         >
@@ -597,9 +654,10 @@ export default function Home() {
         {/* STEP 3 — Classes */}
         <StepCard
           step={3}
-          chip="bg-blue-50 text-blue-600 border-blue-100"
-          title="Manually add each class to the master schedule, or upload a CSV with relevant class data."
-          description={classMode === 'manual' ? `${manualClasses.length} class${manualClasses.length !== 1 ? 'es' : ''} added` : classesCSV ? 'CSV loaded' : 'No file uploaded yet'}
+          chip="bg-yellow-400 text-yellow-900 border-yellow-500"
+          accentBar="bg-yellow-400"
+          title="Add Class Info"
+          description={classMode === 'manual' ? `${manualClasses.length} class${manualClasses.length !== 1 ? 'es' : ''} added` : classesCSV ? 'CSV loaded' : 'Add the Class Info either Manually or via CSV'}
           open={showClasses}
           onToggle={() => setShowClasses(v => !v)}
         >
@@ -696,14 +754,15 @@ export default function Home() {
 
         {/* STEP 4 — Generate */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-green-500" />
           <div className="px-5 py-4 flex items-center gap-4">
-            <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center text-xs font-bold shrink-0">4</span>
+            <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center text-xs font-bold shrink-0">4</span>
             <div className="flex-1 min-w-0">
-              <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Generate the Schedule</h2>
-              <p className="text-[11px] text-gray-400 mt-0.5">The AI agent will build a personalized schedule for every student</p>
+              <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Generate</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">Generate the Master Schedule</p>
             </div>
             <button onClick={generateSchedule} disabled={!hasStudents || !hasClasses || loading}
-              className="shrink-0 bg-gradient-to-r from-blue-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 transition-all shadow-md shadow-blue-500/20 tracking-[-0.01em] whitespace-nowrap">
+              className="shrink-0 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 transition-all shadow-md shadow-emerald-500/20 tracking-[-0.01em] whitespace-nowrap">
               {loading && !schedule ? '✦ Generating…' : '⚡ Generate'}
             </button>
           </div>
@@ -714,9 +773,10 @@ export default function Home() {
         {schedule && (
           <StepCard
             step={5}
-            chip="bg-emerald-50 text-emerald-600 border-emerald-100"
-            title="Review each Student's AI-generated schedule."
-            description={currentStudent ? `Viewing: ${currentStudent.name} · Grade ${currentStudent.grade}` : `${schedule.students.length} student${schedule.students.length !== 1 ? 's' : ''} scheduled`}
+            chip="bg-teal-500 text-white border-teal-600"
+            accentBar="bg-teal-500"
+            title="Review Student's Schedule"
+            description={currentStudent ? `Viewing: ${currentStudent.name} · Grade ${currentStudent.grade}` : 'Review Each Student Schedule generated by the AI Agent'}
             open={showStudentSchedule}
             onToggle={() => setShowStudentSchedule(v => !v)}
           >
@@ -771,9 +831,10 @@ export default function Home() {
           return (
             <StepCard
               step={6}
-              chip="bg-orange-50 text-orange-600 border-orange-100"
-              title="Review the overall AI-generated Master Schedule."
-              description="All classes across the week — hover any class to see enrolled students"
+              chip="bg-blue-500 text-white border-blue-600"
+              accentBar="bg-blue-500"
+              title="Review Master Schedule"
+              description="Review the Master Schedule generated by the AI Agent"
               open={showMasterSchedule}
               onToggle={() => setShowMasterSchedule(v => !v)}
             >
@@ -827,9 +888,10 @@ export default function Home() {
         {schedule && (
           <StepCard
             step={7}
-            chip="bg-violet-50 text-violet-600 border-violet-100"
-            title="Tell the ClassMaker AI Agent to refine any details of the Master Schedule that it generated."
-            description="Adjust any slot, student, or class using plain English"
+            chip="bg-violet-600 text-white border-violet-700"
+            accentBar="bg-violet-600"
+            title="AI Agent: Refine Master Schedule"
+            description="After the Review, tell the AI Agent how to refine the Master Schedule."
             open={showChat}
             onToggle={() => setShowChat(v => !v)}
             flush
@@ -880,35 +942,37 @@ export default function Home() {
           </StepCard>
         )}
 
+        {/* STEP 8 — Export CSV */}
+        {schedule && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="h-1 w-full bg-gradient-to-r from-rose-400 to-pink-500" />
+            <div className="px-5 py-4 flex items-center gap-4">
+              <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center text-xs font-bold shrink-0">8</span>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Get the Master Schedule</h2>
+                <p className="text-[11px] text-gray-400 mt-0.5">Once all is refined, export the Master Schedule as a CSV file</p>
+              </div>
+              <button onClick={() => downloadMasterScheduleCSV(schedule.students)}
+                className="shrink-0 bg-gradient-to-r from-rose-500 to-pink-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md shadow-rose-500/20 tracking-[-0.01em] whitespace-nowrap flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
+                Export CSV
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* How it works — broad audience */}
-      <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] border-t border-white/8 mt-2">
-        <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="md:col-span-3 text-center mb-2">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent mb-4">Every student, perfectly placed.</h2>
-            <p className="text-white/50 text-base max-w-2xl mx-auto leading-relaxed tracking-[-0.01em]">ClassMaker.ai helps afterschool programs, enrichment centers, and school coordinators build smart weekly schedules in seconds — no spreadsheets, no back-and-forth.</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/20 flex items-center justify-center mb-4"><span className="text-blue-400 text-lg">⚡</span></div>
-            <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">From roster to schedule in seconds</h3>
-            <p className="text-white/40 text-xs leading-relaxed">Enter your students and available classes — manually or by uploading a CSV. The AI reads each student&apos;s grade, pickup time, and activity preferences, then builds a complete weekly schedule that respects every constraint automatically.</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/20 border border-violet-400/20 flex items-center justify-center mb-4"><span className="text-violet-400 text-lg">✦</span></div>
-            <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">Adjust with plain English</h3>
-            <p className="text-white/40 text-xs leading-relaxed">Need to make a change? Just type it. Say something like &ldquo;Move Emma out of Basketball on Tuesday&rdquo; or &ldquo;Give all 3rd graders a study block on Mondays&rdquo; — the AI updates the schedule instantly, no re-entering data required.</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border border-emerald-400/20 flex items-center justify-center mb-4"><span className="text-emerald-400 text-lg">🗓️</span></div>
-            <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">See the full picture</h3>
-            <p className="text-white/40 text-xs leading-relaxed">View each student&apos;s personal weekly schedule, then switch to the Master Schedule to see every class running across the whole week — including how many students are in each slot — so coordinators and principals always have the full picture.</p>
-          </div>
-          <div className="md:col-span-3 flex flex-wrap justify-center gap-3 pt-2">
-            {['For Afterschool Programs', 'For Enrichment Centers', 'For Principals & Coordinators', 'Manual or CSV Input', 'AI-Generated & Editable'].map(tag => (
-              <span key={tag} className="text-[11px] text-white/40 border border-white/10 px-3 py-1 rounded-full bg-white/3">{tag}</span>
-            ))}
-          </div>
+      {/* Contact */}
+      <div className="bg-white border-t border-gray-100 mt-2">
+        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+          <h2 className="text-lg font-bold text-[#1d1d1f] mb-2 tracking-[-0.02em]">Questions or Feedback?</h2>
+          <p className="text-gray-500 text-sm mb-5 max-w-lg mx-auto">We&apos;d love to hear from you — whether you&apos;re a teacher, afterschool coordinator, or principal exploring ClassMaker AI.</p>
+          <a href="mailto:classmakerai@gmail.com"
+            className="inline-flex items-center gap-2 bg-[#1d1d1f] hover:bg-[#3a3a3c] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z"/><path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z"/></svg>
+            classmakerai@gmail.com
+          </a>
         </div>
       </div>
     </div>
