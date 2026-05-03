@@ -103,6 +103,29 @@ function blockLabel(key: string) {
   return `${key} (${map[key]})`;
 }
 
+function StepCard({
+  step, chip, title, description, open, onToggle, children, flush,
+}: {
+  step: number; chip: string; title: string; description: string;
+  open: boolean; onToggle: () => void; children: React.ReactNode; flush?: boolean;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+      <button onClick={onToggle} className="w-full px-5 pt-4 pb-3.5 flex items-center justify-between hover:bg-gray-50/70 transition text-left">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 border ${chip}`}>{step}</span>
+          <div className="min-w-0">
+            <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em] leading-snug">{title}</h2>
+            <p className="text-[11px] text-gray-400 mt-0.5">{description}</p>
+          </div>
+        </div>
+        <span className="text-gray-300 text-[10px] w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center shrink-0 ml-3">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && <div className={flush ? '' : 'px-5 pb-5 pt-1 space-y-2.5'}>{children}</div>}
+    </div>
+  );
+}
+
 function buildMasterSchedule(students: StudentSchedule[]): Record<DayKey, Record<BlockKey, Record<string, string[]>>> {
   const result = {} as Record<DayKey, Record<BlockKey, Record<string, string[]>>>;
   for (const day of DAYS) {
@@ -250,6 +273,12 @@ export default function Home() {
   const [setupSuggestions, setSetupSuggestions] = useState<{ preferences: string[]; classTypes: string[]; message: string } | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
 
+  const [showStudents, setShowStudents] = useState(true);
+  const [showClasses, setShowClasses] = useState(true);
+  const [showStudentSchedule, setShowStudentSchedule] = useState(true);
+  const [showMasterSchedule, setShowMasterSchedule] = useState(true);
+  const [showChat, setShowChat] = useState(true);
+
   const handleFileUpload = (
     setter: (val: string) => void,
     warnSetter: (w: string | null) => void,
@@ -375,7 +404,6 @@ export default function Home() {
   };
 
   const currentStudent = schedule?.students.find(s => s.name === selectedStudent);
-
   const DAY_COLORS = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-orange-500', 'bg-rose-500'];
 
   return (
@@ -386,7 +414,7 @@ export default function Home() {
         </div>
         <div className="flex-1">
           <h1 className="text-base font-bold tracking-[-0.02em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent">ClassMaker.ai</h1>
-          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">AI-powered afterschool scheduler</p>
+          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">AI Agent that quickly creates a master schedule for K-12 school and afterschool classes</p>
         </div>
         <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-white/30 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -394,425 +422,328 @@ export default function Home() {
         </span>
       </header>
 
-      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-3">
 
-        {/* Left panel — inputs */}
-        <div className="space-y-4">
-
-          {/* Customize Fields */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-            <button onClick={() => setShowCustomize(v => !v)}
-              className="w-full px-5 pt-4 pb-3.5 flex items-center justify-between bg-white hover:bg-gray-50/70 transition text-left">
-              <div className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xs font-bold border border-emerald-100">0</span>
-                <div>
-                  <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Customize Fields</h2>
-                  <p className="text-[11px] text-gray-400 mt-0.5">AI-guided or manual preferences & class types</p>
-                </div>
-              </div>
-              <span className="text-gray-300 text-xs w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">{showCustomize ? '▲' : '▼'}</span>
-            </button>
-
-            {showCustomize && (
-              <div className="px-4 pb-4 pt-2 space-y-4">
-
-                {/* AI Setup Chat */}
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Assistant</p>
-                  <p className="text-xs text-gray-500">Describe your program and the AI will suggest preferences and class types for you.</p>
-
-                  {/* Chat history */}
-                  {setupMessages.length > 0 && (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {setupMessages.map((m, i) =>
-                        m.role === 'user' ? (
-                          <div key={i} className="flex justify-end">
-                            <div className="bg-emerald-600 text-white text-xs px-3 py-2 rounded-2xl rounded-tr-sm max-w-[85%]">{m.content}</div>
-                          </div>
-                        ) : (
-                          <div key={i} className="flex gap-2 items-start">
-                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-white text-[9px]">✦</span>
-                            </div>
-                            <div className="bg-gray-50 border border-gray-100 text-gray-700 text-xs px-3 py-2 rounded-2xl rounded-tl-sm max-w-[85%]">{m.content}</div>
-                          </div>
-                        )
-                      )}
-                      {setupLoading && (
-                        <div className="flex gap-2 items-center">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0">
-                            <span className="text-white text-[9px]">✦</span>
-                          </div>
-                          <div className="flex gap-1 px-3 py-2 bg-gray-50 rounded-2xl border border-gray-100">
-                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                          </div>
-                        </div>
-                      )}
+        {/* STEP 1 — Customize Preferences */}
+        <StepCard
+          step={1}
+          chip="bg-emerald-50 text-emerald-600 border-emerald-100"
+          title="Tell the ClassMaker AI Agent preferences for your master schedule."
+          description="AI-guided or manual — set activity preferences & class types"
+          open={showCustomize}
+          onToggle={() => setShowCustomize(v => !v)}
+        >
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Assistant</p>
+            <p className="text-xs text-gray-500">Describe your program and the AI will suggest preferences and class types for you.</p>
+            {setupMessages.length > 0 && (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {setupMessages.map((m, i) =>
+                  m.role === 'user' ? (
+                    <div key={i} className="flex justify-end">
+                      <div className="bg-emerald-600 text-white text-xs px-3 py-2 rounded-2xl rounded-tr-sm max-w-[85%]">{m.content}</div>
                     </div>
-                  )}
-
-                  {/* Suggestions banner */}
-                  {setupSuggestions && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
-                      <p className="text-xs font-semibold text-emerald-800">Suggested Fields Ready</p>
-                      {setupSuggestions.preferences.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {setupSuggestions.preferences.map(p => (
-                            <span key={p} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{p}</span>
-                          ))}
-                        </div>
-                      )}
-                      {setupSuggestions.classTypes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {setupSuggestions.classTypes.map(t => (
-                            <span key={t} className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{t}</span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex gap-2 pt-1">
-                        <button onClick={() => {
-                          if (setupSuggestions.preferences.length > 0) setCustomPreferences(setupSuggestions.preferences);
-                          if (setupSuggestions.classTypes.length > 0) setCustomClassTypes(setupSuggestions.classTypes);
-                          setSetupSuggestions(null);
-                        }} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">
-                          Apply Suggestions
-                        </button>
-                        <button onClick={() => setSetupSuggestions(null)}
-                          className="text-xs text-gray-400 hover:text-gray-600 px-2 transition">Dismiss</button>
-                      </div>
+                  ) : (
+                    <div key={i} className="flex gap-2 items-start">
+                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5"><span className="text-white text-[9px]">✦</span></div>
+                      <div className="bg-gray-50 border border-gray-100 text-gray-700 text-xs px-3 py-2 rounded-2xl rounded-tl-sm max-w-[85%]">{m.content}</div>
                     </div>
-                  )}
-
-                  {setupError && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{setupError}</p>}
-
-                  {/* Input */}
-                  <div className={`flex items-center gap-2 border rounded-xl px-3 py-2 transition-all ${setupLoading ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100'}`}>
-                    <input value={setupInput} onChange={e => setSetupInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && sendSetupMessage()}
-                      disabled={setupLoading}
-                      placeholder="e.g. We offer chess, robotics, ballet, and tutoring for K-8"
-                      className="flex-1 text-xs text-gray-900 placeholder:text-gray-400 bg-transparent focus:outline-none disabled:text-gray-400" />
-                    <button onClick={sendSetupMessage} disabled={setupLoading || !setupInput.trim()}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition shrink-0 ${setupInput.trim() && !setupLoading ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-                      </svg>
-                    </button>
+                  )
+                )}
+                {setupLoading && (
+                  <div className="flex gap-2 items-center">
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0"><span className="text-white text-[9px]">✦</span></div>
+                    <div className="flex gap-1 px-3 py-2 bg-gray-50 rounded-2xl border border-gray-100">
+                      <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                    </div>
                   </div>
-                </div>
-
-                <hr className="border-gray-100" />
-
-                {/* Manual: Activity Preferences */}
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Activity Preferences</p>
-                  <div className="flex flex-wrap gap-1">
-                    {customPreferences.map(pref => (
-                      <span key={pref} className="flex items-center gap-1 text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">
-                        {pref}
-                        <button onClick={() => setCustomPreferences(p => p.filter(x => x !== pref))} className="text-violet-400 hover:text-red-500 transition leading-none">✕</button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-1.5">
-                    <input value={newPrefInput} onChange={e => setNewPrefInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addPreference()}
-                      placeholder="Add preference..."
-                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
-                    <button onClick={addPreference} disabled={!newPrefInput.trim()}
-                      className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
-                  </div>
-                </div>
-
-                {/* Manual: Class Types */}
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Class Types</p>
-                  <div className="flex flex-wrap gap-1">
-                    {customClassTypes.map(type => (
-                      <span key={type} className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
-                        {type}
-                        <button onClick={() => setCustomClassTypes(t => t.filter(x => x !== type))} className="text-blue-400 hover:text-red-500 transition leading-none">✕</button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-1.5">
-                    <input value={newTypeInput} onChange={e => setNewTypeInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addClassType()}
-                      placeholder="Add class type..."
-                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                    <button onClick={addClassType} disabled={!newTypeInput.trim()}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
-                  </div>
-                </div>
-
+                )}
               </div>
             )}
-          </div>
-
-          {/* Students */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="px-5 pt-4 pb-3 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 text-xs font-bold border border-violet-100">1</span>
-                <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Students</h2>
+            {setupSuggestions && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
+                <p className="text-xs font-semibold text-emerald-800">Suggested Fields Ready</p>
+                {setupSuggestions.preferences.length > 0 && (
+                  <div className="flex flex-wrap gap-1">{setupSuggestions.preferences.map(p => <span key={p} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{p}</span>)}</div>
+                )}
+                {setupSuggestions.classTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-1">{setupSuggestions.classTypes.map(t => <span key={t} className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{t}</span>)}</div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => { if (setupSuggestions.preferences.length > 0) setCustomPreferences(setupSuggestions.preferences); if (setupSuggestions.classTypes.length > 0) setCustomClassTypes(setupSuggestions.classTypes); setSetupSuggestions(null); }} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">Apply Suggestions</button>
+                  <button onClick={() => setSetupSuggestions(null)} className="text-xs text-gray-400 hover:text-gray-600 px-2 transition">Dismiss</button>
+                </div>
               </div>
-              <ModeToggle mode={studentMode} onChange={setStudentMode} />
-            </div>
-            <div className="px-5 pb-5 pt-1 space-y-2.5">
-              {studentMode === 'csv' ? (
-                <>
-                  <label className="flex items-center justify-center gap-2 w-full cursor-pointer bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
-                      <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-                    </svg>
-                    {studentsCSV ? 'Replace Students CSV' : 'Upload Students CSV'}
-                    <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV, setStudentsCSVWarning, STUDENT_COLS)} className="sr-only" />
-                  </label>
-                  {studentsCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{studentsCSVWarning}</p>}
-                  {studentsCSV && !studentsCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
-                  <a href="/sample_students.csv" download className="flex items-center gap-1.5 text-xs text-violet-700 hover:underline font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
-                    Download sample_students.csv
-                  </a>
-                  <div className="mt-2 p-2.5 bg-violet-50 rounded-lg text-xs text-gray-600 space-y-1 border border-violet-100">
-                    <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
-                    <ul className="space-y-0.5 list-none">
-                      <li><span className="font-medium text-gray-800">name</span> — Student&apos;s full name (e.g. Emma Smith)</li>
-                      <li><span className="font-medium text-gray-800">grade</span> — Grade level: 1–8</li>
-                      <li><span className="font-medium text-gray-800">pickup_block</span> — Latest block they can stay: BLK0 (3:30 PM), BLK1 (4:30 PM), BLK2 (5:30 PM), BLK3 (6:30 PM)</li>
-                      <li><span className="font-medium text-gray-800">goals</span> — Academic focus areas, separated by + (e.g. reading+math)</li>
-                      <li><span className="font-medium text-gray-800">preferences</span> — Activity types, separated by + (e.g. Academic+Music)</li>
-                    </ul>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input value={studentForm.firstName} onChange={e => setStudentForm(f => ({ ...f, firstName: e.target.value }))} placeholder="First name"
-                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
-                    <input value={studentForm.lastName} onChange={e => setStudentForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Last name"
-                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Grade</label>
-                      <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
-                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>Grade {g}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Pickup</label>
-                      <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
-                        <option value="BLK0">3:30 PM</option>
-                        <option value="BLK1">4:30 PM</option>
-                        <option value="BLK2">5:30 PM</option>
-                        <option value="BLK3">6:30 PM</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Preferences</label>
-                    <div className="flex flex-wrap gap-1">
-                      {customPreferences.map(pref => (
-                        <button key={pref} onClick={() => togglePreference(pref)}
-                          className={`text-xs px-2 py-0.5 rounded-full border transition ${studentForm.preferences.includes(pref) ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-300 text-gray-600 hover:border-violet-400'}`}>
-                          {pref}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <input value={studentForm.goals} onChange={e => setStudentForm(f => ({ ...f, goals: e.target.value }))} placeholder="Academic goals (e.g. reading, math)"
-                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
-                  <button onClick={addStudent} disabled={!studentForm.firstName.trim() || !studentForm.lastName.trim()}
-                    className="w-full bg-violet-50 text-violet-700 border border-violet-200 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-violet-100 transition">
-                    + Add Student
-                  </button>
-                  {manualStudents.length > 0 && (
-                    <div className="space-y-1 pt-1">
-                      {manualStudents.map((s, i) => (
-                        <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm border border-gray-100">
-                          <span className="text-gray-700">{s.firstName} {s.lastName} <span className="text-gray-400">· Gr. {s.grade}</span></span>
-                          <button onClick={() => setManualStudents(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition text-xs ml-2">✕</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+            )}
+            {setupError && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{setupError}</p>}
+            <div className={`flex items-center gap-2 border rounded-xl px-3 py-2 transition-all ${setupLoading ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100'}`}>
+              <input value={setupInput} onChange={e => setSetupInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendSetupMessage()} disabled={setupLoading} placeholder="e.g. We offer chess, robotics, ballet, and tutoring for K-8" className="flex-1 text-xs text-gray-900 placeholder:text-gray-400 bg-transparent focus:outline-none disabled:text-gray-400" />
+              <button onClick={sendSetupMessage} disabled={setupLoading || !setupInput.trim()} className={`w-6 h-6 rounded-full flex items-center justify-center transition shrink-0 ${setupInput.trim() && !setupLoading ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+              </button>
             </div>
           </div>
+          <hr className="border-gray-100" />
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Activity Preferences</p>
+            <div className="flex flex-wrap gap-1">
+              {customPreferences.map(pref => (
+                <span key={pref} className="flex items-center gap-1 text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">
+                  {pref}<button onClick={() => setCustomPreferences(p => p.filter(x => x !== pref))} className="text-violet-400 hover:text-red-500 transition leading-none">✕</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <input value={newPrefInput} onChange={e => setNewPrefInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addPreference()} placeholder="Add preference..." className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <button onClick={addPreference} disabled={!newPrefInput.trim()} className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Class Types</p>
+            <div className="flex flex-wrap gap-1">
+              {customClassTypes.map(type => (
+                <span key={type} className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+                  {type}<button onClick={() => setCustomClassTypes(t => t.filter(x => x !== type))} className="text-blue-400 hover:text-red-500 transition leading-none">✕</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <input value={newTypeInput} onChange={e => setNewTypeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addClassType()} placeholder="Add class type..." className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <button onClick={addClassType} disabled={!newTypeInput.trim()} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
+            </div>
+          </div>
+        </StepCard>
 
-          {/* Classes */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="px-5 pt-4 pb-3 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-xs font-bold border border-blue-100">2</span>
-                <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Classes</h2>
+        {/* STEP 2 — Students */}
+        <StepCard
+          step={2}
+          chip="bg-violet-50 text-violet-600 border-violet-100"
+          title="Manually add the information for each student, or upload a CSV with relevant student data."
+          description={studentMode === 'manual' ? `${manualStudents.length} student${manualStudents.length !== 1 ? 's' : ''} added` : studentsCSV ? 'CSV loaded' : 'No file uploaded yet'}
+          open={showStudents}
+          onToggle={() => setShowStudents(v => !v)}
+        >
+          <div className="flex justify-end mb-1"><ModeToggle mode={studentMode} onChange={setStudentMode} /></div>
+          {studentMode === 'csv' ? (
+            <>
+              <label className="flex items-center justify-center gap-2 w-full cursor-pointer bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
+                {studentsCSV ? 'Replace Students CSV' : 'Upload Students CSV'}
+                <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV, setStudentsCSVWarning, STUDENT_COLS)} className="sr-only" />
+              </label>
+              {studentsCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{studentsCSVWarning}</p>}
+              {studentsCSV && !studentsCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+              <a href="/sample_students.csv" download className="flex items-center gap-1.5 text-xs text-violet-700 hover:underline font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
+                Download sample_students.csv
+              </a>
+              <div className="p-2.5 bg-violet-50 rounded-lg text-xs text-gray-600 space-y-1 border border-violet-100">
+                <p className="font-semibold text-gray-700">Required CSV columns:</p>
+                <ul className="space-y-0.5 list-none">
+                  <li><span className="font-medium text-gray-800">name</span> — Student&apos;s full name</li>
+                  <li><span className="font-medium text-gray-800">grade</span> — Grade level: 1–8</li>
+                  <li><span className="font-medium text-gray-800">pickup_block</span> — BLK0 (3:30), BLK1 (4:30), BLK2 (5:30), BLK3 (6:30)</li>
+                  <li><span className="font-medium text-gray-800">goals</span> — Academic focus areas, e.g. reading+math</li>
+                  <li><span className="font-medium text-gray-800">preferences</span> — Activity types, e.g. Academic+Music</li>
+                </ul>
               </div>
-              <ModeToggle mode={classMode} onChange={setClassMode} />
-            </div>
-            <div className="px-5 pb-5 pt-1 space-y-2.5">
-              {classMode === 'csv' ? (
-                <>
-                  <label className="flex items-center justify-center gap-2 w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
-                      <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-                    </svg>
-                    {classesCSV ? 'Replace Classes CSV' : 'Upload Classes CSV'}
-                    <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV, setClassesCSVWarning, CLASS_COLS)} className="sr-only" />
-                  </label>
-                  {classesCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{classesCSVWarning}</p>}
-                  {classesCSV && !classesCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
-                  <a href="/sample_classes.csv" download className="flex items-center gap-1.5 text-xs text-blue-700 hover:underline font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
-                    Download sample_classes.csv
-                  </a>
-                  <div className="mt-2 p-2.5 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-1 border border-blue-100">
-                    <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
-                    <ul className="space-y-0.5 list-none">
-                      <li><span className="font-medium text-gray-800">name</span> — Class name (e.g. Group Piano)</li>
-                      <li><span className="font-medium text-gray-800">day</span> — Day of the week (e.g. Monday)</li>
-                      <li><span className="font-medium text-gray-800">block_start</span> — First time block: BLK0 (2:30), BLK1 (3:30), BLK2 (4:30), BLK3 (5:30)</li>
-                      <li><span className="font-medium text-gray-800">block_end</span> — Last time block (same as block_start if single block)</li>
-                      <li><span className="font-medium text-gray-800">grade_min</span> — Lowest grade allowed: 1–8</li>
-                      <li><span className="font-medium text-gray-800">grade_max</span> — Highest grade allowed: 1–8</li>
-                      <li><span className="font-medium text-gray-800">capacity</span> — Max number of students</li>
-                      <li><span className="font-medium text-gray-800">type</span> — Activity category: Academic, Art, Music, or Athletic</li>
-                    </ul>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <input value={classForm.name} onChange={e => setClassForm(f => ({ ...f, name: e.target.value }))} placeholder="Class name (e.g. Group Piano)"
-                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Day</label>
-                      <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {DAYS.map(d => <option key={d}>{d}</option>)}
-                      </select>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <input value={studentForm.firstName} onChange={e => setStudentForm(f => ({ ...f, firstName: e.target.value }))} placeholder="First name" className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+                <input value={studentForm.lastName} onChange={e => setStudentForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Last name" className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Grade</label>
+                  <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
+                    {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>Grade {g}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Pickup</label>
+                  <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
+                    <option value="BLK0">3:30 PM</option><option value="BLK1">4:30 PM</option><option value="BLK2">5:30 PM</option><option value="BLK3">6:30 PM</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Preferences</label>
+                <div className="flex flex-wrap gap-1">
+                  {customPreferences.map(pref => (
+                    <button key={pref} onClick={() => togglePreference(pref)} className={`text-xs px-2 py-0.5 rounded-full border transition ${studentForm.preferences.includes(pref) ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-300 text-gray-600 hover:border-violet-400'}`}>{pref}</button>
+                  ))}
+                </div>
+              </div>
+              <input value={studentForm.goals} onChange={e => setStudentForm(f => ({ ...f, goals: e.target.value }))} placeholder="Academic goals (e.g. reading, math)" className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <button onClick={addStudent} disabled={!studentForm.firstName.trim() || !studentForm.lastName.trim()} className="w-full bg-violet-50 text-violet-700 border border-violet-200 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-violet-100 transition">+ Add Student</button>
+              {manualStudents.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {manualStudents.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm border border-gray-100">
+                      <span className="text-gray-700">{s.firstName} {s.lastName} <span className="text-gray-400">· Gr. {s.grade}</span></span>
+                      <button onClick={() => setManualStudents(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition text-xs ml-2">✕</button>
                     </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
-                      <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {customClassTypes.map(t => <option key={t}>{t}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Start block</label>
-                      <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">End block</label>
-                      <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Min grade</label>
-                      <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Max grade</label>
-                      <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-0.5 block">Capacity</label>
-                      <input type="number" min={1} value={classForm.capacity} onChange={e => setClassForm(f => ({ ...f, capacity: e.target.value }))}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                    </div>
-                  </div>
-                  {classError && <p className="text-xs text-red-500">{classError}</p>}
-                  <button onClick={addClass}
-                    className="w-full bg-blue-50 text-blue-700 border border-blue-200 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition">
-                    + Add Class
-                  </button>
-                  {manualClasses.length > 0 && (
-                    <div className="space-y-1 pt-1 max-h-36 overflow-y-auto">
-                      {manualClasses.map((c, i) => (
-                        <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-xs border border-gray-100">
-                          <span className="text-gray-700 truncate">{c.name} <span className="text-gray-400">· {c.day} {c.blockStart}{c.blockEnd !== c.blockStart ? `–${c.blockEnd}` : ''}</span></span>
-                          <button onClick={() => setManualClasses(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition ml-2 shrink-0">✕</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
+                  ))}
+                </div>
               )}
-            </div>
-          </div>
+            </>
+          )}
+        </StepCard>
 
-          {/* Generate */}
-          <button onClick={generateSchedule} disabled={!hasStudents || !hasClasses || loading}
-            className="w-full bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 bg-size-200 hover:bg-right text-white py-3 rounded-2xl text-sm font-semibold disabled:opacity-40 transition-all duration-300 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 tracking-[-0.01em]">
-            {loading && !schedule ? '✦ Generating…' : '⚡ Generate Schedule'}
-          </button>
-          {apiError && <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 break-words border border-red-100">{apiError}</p>}
+        {/* STEP 3 — Classes */}
+        <StepCard
+          step={3}
+          chip="bg-blue-50 text-blue-600 border-blue-100"
+          title="Manually add each class to the master schedule, or upload a CSV with relevant class data."
+          description={classMode === 'manual' ? `${manualClasses.length} class${manualClasses.length !== 1 ? 'es' : ''} added` : classesCSV ? 'CSV loaded' : 'No file uploaded yet'}
+          open={showClasses}
+          onToggle={() => setShowClasses(v => !v)}
+        >
+          <div className="flex justify-end mb-1"><ModeToggle mode={classMode} onChange={setClassMode} /></div>
+          {classMode === 'csv' ? (
+            <>
+              <label className="flex items-center justify-center gap-2 w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
+                {classesCSV ? 'Replace Classes CSV' : 'Upload Classes CSV'}
+                <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV, setClassesCSVWarning, CLASS_COLS)} className="sr-only" />
+              </label>
+              {classesCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{classesCSVWarning}</p>}
+              {classesCSV && !classesCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+              <a href="/sample_classes.csv" download className="flex items-center gap-1.5 text-xs text-blue-700 hover:underline font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
+                Download sample_classes.csv
+              </a>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-1 border border-blue-100">
+                <p className="font-semibold text-gray-700">Required CSV columns:</p>
+                <ul className="space-y-0.5 list-none">
+                  <li><span className="font-medium text-gray-800">name</span> — Class name</li>
+                  <li><span className="font-medium text-gray-800">day</span> — Day of the week</li>
+                  <li><span className="font-medium text-gray-800">block_start / block_end</span> — BLK0–BLK3</li>
+                  <li><span className="font-medium text-gray-800">grade_min / grade_max</span> — 1–8</li>
+                  <li><span className="font-medium text-gray-800">capacity</span> — Max students</li>
+                  <li><span className="font-medium text-gray-800">type</span> — Academic, Art, Music, Athletic…</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <input value={classForm.name} onChange={e => setClassForm(f => ({ ...f, name: e.target.value }))} placeholder="Class name (e.g. Group Piano)" className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Day</label>
+                  <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {DAYS.map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
+                  <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {customClassTypes.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Start block</label>
+                  <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">End block</label>
+                  <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Min grade</label>
+                  <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Max grade</label>
+                  <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Capacity</label>
+                  <input type="number" min={1} value={classForm.capacity} onChange={e => setClassForm(f => ({ ...f, capacity: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+              </div>
+              {classError && <p className="text-xs text-red-500">{classError}</p>}
+              <button onClick={addClass} className="w-full bg-blue-50 text-blue-700 border border-blue-200 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition">+ Add Class</button>
+              {manualClasses.length > 0 && (
+                <div className="space-y-1 pt-1 max-h-36 overflow-y-auto">
+                  {manualClasses.map((c, i) => (
+                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-xs border border-gray-100">
+                      <span className="text-gray-700 truncate">{c.name} <span className="text-gray-400">· {c.day} {c.blockStart}{c.blockEnd !== c.blockStart ? `–${c.blockEnd}` : ''}</span></span>
+                      <button onClick={() => setManualClasses(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition ml-2 shrink-0">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </StepCard>
+
+        {/* STEP 4 — Generate */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="px-5 py-4 flex items-center gap-4">
+            <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center text-xs font-bold shrink-0">4</span>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold text-[#1d1d1f] text-sm tracking-[-0.01em]">Generate the Schedule</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">The AI agent will build a personalized schedule for every student</p>
+            </div>
+            <button onClick={generateSchedule} disabled={!hasStudents || !hasClasses || loading}
+              className="shrink-0 bg-gradient-to-r from-blue-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 transition-all shadow-md shadow-blue-500/20 tracking-[-0.01em] whitespace-nowrap">
+              {loading && !schedule ? '✦ Generating…' : '⚡ Generate'}
+            </button>
+          </div>
+          {apiError && <div className="px-5 pb-4"><p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 break-words border border-red-100">{apiError}</p></div>}
         </div>
 
-        {/* Right panel — schedule + chat */}
-        <div className="lg:col-span-2 space-y-5">
-
-          {/* Student selector tabs — above schedule */}
-          {schedule && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] px-5 py-4">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Student View</p>
-              <div className="flex flex-wrap gap-2">
-                {schedule.students.map(s => (
-                  <button key={s.name} onClick={() => setSelectedStudent(s.name)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      selectedStudent === s.name
-                        ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/20'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}>
-                    {s.name}
-                    <span className={`ml-1.5 text-xs ${selectedStudent === s.name ? 'text-blue-200' : 'text-gray-400'}`}>Gr. {s.grade}</span>
-                  </button>
-                ))}
-              </div>
+        {/* STEP 5 — Individual Student Schedule */}
+        {schedule && (
+          <StepCard
+            step={5}
+            chip="bg-emerald-50 text-emerald-600 border-emerald-100"
+            title="Review each Student's AI-generated schedule."
+            description={currentStudent ? `Viewing: ${currentStudent.name} · Grade ${currentStudent.grade}` : `${schedule.students.length} student${schedule.students.length !== 1 ? 's' : ''} scheduled`}
+            open={showStudentSchedule}
+            onToggle={() => setShowStudentSchedule(v => !v)}
+          >
+            <div className="flex flex-wrap gap-2 mb-3">
+              {schedule.students.map(s => (
+                <button key={s.name} onClick={() => setSelectedStudent(s.name)}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200 ${selectedStudent === s.name ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-md shadow-blue-500/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  {s.name}<span className={`ml-1.5 text-xs ${selectedStudent === s.name ? 'text-blue-200' : 'text-gray-400'}`}>Gr. {s.grade}</span>
+                </button>
+              ))}
             </div>
-          )}
-
-          {/* Schedule grid */}
-          {currentStudent ? (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-50">
-                <h2 className="font-semibold text-[#1d1d1f] tracking-[-0.02em]">
-                  {currentStudent.name}&apos;s Weekly Schedule
-                  <span className="ml-2 text-sm font-normal text-gray-400 tracking-normal">Grade {currentStudent.grade}</span>
-                </h2>
-              </div>
-              <div className="overflow-x-auto px-5 pb-5">
-                <table className="w-full text-sm border-collapse mt-3">
+            {currentStudent && (
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr>
                       <th className="text-left pb-2 text-gray-400 font-medium text-xs w-24 pr-3">Block</th>
                       {DAYS.map((day, i) => (
                         <th key={day} className="pb-2 text-center">
-                          <span className={`inline-block px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide ${DAY_COLORS[i]}`}>
-                            {day.slice(0, 3)}
-                          </span>
+                          <span className={`inline-block px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide ${DAY_COLORS[i]}`}>{day.slice(0, 3)}</span>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {BLOCKS.map(({ key, time }, rowIdx) => (
-                      <tr key={key} className={rowIdx % 2 === 0 ? 'bg-gray-50/60 rounded-xl' : 'bg-white'}>
+                      <tr key={key} className={rowIdx % 2 === 0 ? 'bg-gray-50/60' : 'bg-white'}>
                         <td className="py-3 pr-3 border-t border-gray-100 align-middle">
                           <div className="font-semibold text-gray-700 text-xs">{key}</div>
                           <div className="text-[11px] text-gray-400">{time}</div>
@@ -821,9 +752,7 @@ export default function Home() {
                           const activity = currentStudent.schedule[day]?.[key];
                           return (
                             <td key={day} className="py-3 px-1 text-center border-t border-gray-100 align-middle">
-                              {activity
-                                ? <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium ${getActivityColor(activity)}`}>{activity}</span>
-                                : <span className="text-gray-200 text-xs">—</span>}
+                              {activity ? <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium ${getActivityColor(activity)}`}>{activity}</span> : <span className="text-gray-200 text-xs">—</span>}
                             </td>
                           );
                         })}
@@ -832,200 +761,149 @@ export default function Home() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] p-16 text-center">
-              <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-50 to-violet-50 flex items-center justify-center mx-auto mb-4 border border-blue-100/50">
-                <span className="text-3xl">🗓️</span>
-              </div>
-              <p className="text-sm font-medium text-gray-500 tracking-[-0.01em]">Add students and classes, then generate a schedule.</p>
-              <p className="text-xs text-gray-300 mt-1">Your AI-generated schedule will appear here.</p>
-            </div>
-          )}
+            )}
+          </StepCard>
+        )}
 
-          {/* Master Schedule */}
-          {schedule && schedule.students.length > 0 && (() => {
-            const master = buildMasterSchedule(schedule.students);
-            return (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-                  <div>
-                    <h2 className="font-semibold text-[#1d1d1f] tracking-[-0.02em]">Master Schedule</h2>
-                    <p className="text-[11px] text-gray-400 mt-0.5">All classes across the week — hover a class to see enrolled students</p>
-                  </div>
-                  <span className="text-[10px] font-semibold text-orange-500 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full uppercase tracking-wider">Weekly View</span>
-                </div>
-                <div className="overflow-x-auto px-5 pb-5">
-                  <table className="w-full text-sm border-collapse mt-3">
-                    <thead>
-                      <tr>
-                        <th className="text-left pb-2 text-gray-400 font-medium text-xs w-24 pr-3">Block</th>
-                        {DAYS.map((day, i) => (
-                          <th key={day} className="pb-2 text-center">
-                            <span className={`inline-block px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide ${DAY_COLORS[i]}`}>
-                              {day.slice(0, 3)}
-                            </span>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {BLOCKS.map(({ key, time }, rowIdx) => (
-                        <tr key={key} className={rowIdx % 2 === 0 ? 'bg-gray-50/60' : 'bg-white'}>
-                          <td className="py-3 pr-3 border-t border-gray-100 align-top">
-                            <div className="font-semibold text-gray-700 text-xs">{key}</div>
-                            <div className="text-[11px] text-gray-400">{time}</div>
-                          </td>
-                          {DAYS.map(day => {
-                            const cell = master[day]?.[key] ?? {};
-                            const entries = Object.entries(cell);
-                            return (
-                              <td key={day} className="py-3 px-1 border-t border-gray-100 align-top min-w-[100px]">
-                                {entries.length > 0 ? (
-                                  <div className="flex flex-col gap-1.5">
-                                    {entries.map(([activity, studentNames]) => (
-                                      <div key={activity} className={`group relative px-2.5 py-1 rounded-lg text-xs font-medium cursor-default ${getActivityColor(activity)}`}>
-                                        <span>{activity}</span>
-                                        <span className="ml-1 opacity-50 font-normal">({studentNames.length})</span>
-                                        <div className="absolute z-10 hidden group-hover:block bottom-full left-0 mb-1.5 w-max max-w-[200px] bg-[#1d1d1f] text-white text-[10px] rounded-xl px-3 py-2 leading-relaxed shadow-xl">
-                                          {studentNames.join(', ')}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-200 text-xs">—</span>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
+        {/* STEP 6 — Master Schedule */}
+        {schedule && schedule.students.length > 0 && (() => {
+          const master = buildMasterSchedule(schedule.students);
+          return (
+            <StepCard
+              step={6}
+              chip="bg-orange-50 text-orange-600 border-orange-100"
+              title="Review the overall AI-generated Master Schedule."
+              description="All classes across the week — hover any class to see enrolled students"
+              open={showMasterSchedule}
+              onToggle={() => setShowMasterSchedule(v => !v)}
+            >
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="text-left pb-2 text-gray-400 font-medium text-xs w-24 pr-3">Block</th>
+                      {DAYS.map((day, i) => (
+                        <th key={day} className="pb-2 text-center">
+                          <span className={`inline-block px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide ${DAY_COLORS[i]}`}>{day.slice(0, 3)}</span>
+                        </th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {BLOCKS.map(({ key, time }, rowIdx) => (
+                      <tr key={key} className={rowIdx % 2 === 0 ? 'bg-gray-50/60' : 'bg-white'}>
+                        <td className="py-3 pr-3 border-t border-gray-100 align-top">
+                          <div className="font-semibold text-gray-700 text-xs">{key}</div>
+                          <div className="text-[11px] text-gray-400">{time}</div>
+                        </td>
+                        {DAYS.map(day => {
+                          const cell = master[day]?.[key] ?? {};
+                          const entries = Object.entries(cell);
+                          return (
+                            <td key={day} className="py-3 px-1 border-t border-gray-100 align-top min-w-[100px]">
+                              {entries.length > 0 ? (
+                                <div className="flex flex-col gap-1.5">
+                                  {entries.map(([activity, studentNames]) => (
+                                    <div key={activity} className={`group relative px-2.5 py-1 rounded-lg text-xs font-medium cursor-default ${getActivityColor(activity)}`}>
+                                      <span>{activity}</span><span className="ml-1 opacity-50 font-normal">({studentNames.length})</span>
+                                      <div className="absolute z-10 hidden group-hover:block bottom-full left-0 mb-1.5 w-max max-w-[200px] bg-[#1d1d1f] text-white text-[10px] rounded-xl px-3 py-2 leading-relaxed shadow-xl">{studentNames.join(', ')}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : <span className="text-gray-200 text-xs">—</span>}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            );
-          })()}
+            </StepCard>
+          );
+        })()}
 
-          {/* AI Chat */}
-          <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] rounded-2xl border border-white/8 shadow-2xl shadow-violet-900/20 overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/8 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/30">
-                <span className="text-white text-base leading-none">✦</span>
-              </div>
-              <div>
-                <h2 className="font-semibold text-white text-sm tracking-[-0.01em]">ClassMaker AI</h2>
-                <p className="text-white/40 text-[11px] tracking-wide">Refine your schedule with natural language</p>
-              </div>
-            </div>
-
-            <div className="px-5 py-5 space-y-4 min-h-32 max-h-72 overflow-y-auto">
-              {messages.length === 0 && (
-                <div className="text-center py-6">
-                  <div className="w-14 h-14 rounded-3xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center mx-auto mb-4 shadow-inner">
-                    <span className="text-white/60 text-2xl leading-none">✦</span>
+        {/* STEP 7 — AI Refinement Chat */}
+        {schedule && (
+          <StepCard
+            step={7}
+            chip="bg-violet-50 text-violet-600 border-violet-100"
+            title="Tell the ClassMaker AI Agent to refine any details of the Master Schedule that it generated."
+            description="Adjust any slot, student, or class using plain English"
+            open={showChat}
+            onToggle={() => setShowChat(v => !v)}
+            flush
+          >
+            <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] rounded-b-2xl overflow-hidden">
+              <div className="px-5 py-5 space-y-4 min-h-32 max-h-72 overflow-y-auto">
+                {messages.length === 0 && (
+                  <div className="text-center py-6">
+                    <div className="w-14 h-14 rounded-3xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-white/60 text-2xl leading-none">✦</span>
+                    </div>
+                    <p className="text-sm text-white/60 tracking-[-0.01em]">Ask me to adjust any part of the schedule.</p>
+                    <p className="text-[11px] text-white/25 mt-1.5">e.g. &quot;Move Emma out of Basketball on Tuesday&quot;</p>
                   </div>
-                  <p className="text-sm text-white/60 tracking-[-0.01em]">Generate a schedule, then ask me to refine it.</p>
-                  <p className="text-[11px] text-white/25 mt-1.5">e.g. &quot;Move Emma out of Basketball on Tuesday&quot;</p>
-                </div>
-              )}
-              {messages.map((m, i) =>
-                m.role === 'user' ? (
-                  <div key={i} className="flex justify-end">
-                    <div className="bg-gradient-to-br from-blue-600 to-violet-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] leading-relaxed shadow-md shadow-violet-900/30">
-                      {m.content}
+                )}
+                {messages.map((m, i) =>
+                  m.role === 'user' ? (
+                    <div key={i} className="flex justify-end">
+                      <div className="bg-gradient-to-br from-blue-600 to-violet-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] leading-relaxed shadow-md shadow-violet-900/30">{m.content}</div>
+                    </div>
+                  ) : (
+                    <div key={i} className="flex gap-2.5 items-start">
+                      <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-violet-500/20"><span className="text-white text-xs leading-none">✦</span></div>
+                      <div className="bg-white/8 border border-white/10 text-white/85 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] leading-relaxed">{m.content}</div>
+                    </div>
+                  )
+                )}
+                {loading && (
+                  <div className="flex gap-2.5 items-center">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 shadow-md shadow-violet-500/20"><span className="text-white text-xs leading-none">✦</span></div>
+                    <div className="flex gap-1.5 px-4 py-3 bg-white/8 rounded-2xl rounded-tl-sm border border-white/10">
+                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:300ms]" />
                     </div>
                   </div>
-                ) : (
-                  <div key={i} className="flex gap-2.5 items-start">
-                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-violet-500/20">
-                      <span className="text-white text-xs leading-none">✦</span>
-                    </div>
-                    <div className="bg-white/8 border border-white/10 text-white/85 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] leading-relaxed backdrop-blur-sm">
-                      {m.content}
-                    </div>
-                  </div>
-                )
-              )}
-              {loading && schedule && (
-                <div className="flex gap-2.5 items-center">
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 shadow-md shadow-violet-500/20">
-                    <span className="text-white text-xs leading-none">✦</span>
-                  </div>
-                  <div className="flex gap-1.5 px-4 py-3 bg-white/8 rounded-2xl rounded-tl-sm border border-white/10">
-                    <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                  </div>
+                )}
+              </div>
+              <div className="px-5 pb-5">
+                <div className={`flex items-center gap-2 rounded-xl px-4 py-3 transition-all ${loading ? 'bg-white/5 border border-white/8' : 'bg-white/8 border border-white/15 focus-within:border-violet-500/60 focus-within:ring-2 focus-within:ring-violet-500/20'}`}>
+                  <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder="Ask me to adjust the schedule…" disabled={loading} className="flex-1 text-sm text-white placeholder:text-white/25 bg-transparent focus:outline-none disabled:text-white/20 tracking-[-0.01em]" />
+                  <button onClick={sendMessage} disabled={loading || !input.trim()} className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${input.trim() && !loading ? 'bg-gradient-to-br from-violet-500 to-blue-500 hover:from-violet-400 hover:to-blue-400 text-white shadow-md shadow-violet-500/30' : 'bg-white/8 text-white/25'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+                  </button>
                 </div>
-              )}
-            </div>
-
-            <div className="px-5 pb-5">
-              <div className={`flex items-center gap-2 rounded-xl px-4 py-3 transition-all ${!schedule || loading ? 'bg-white/5 border border-white/8' : 'bg-white/8 border border-white/15 focus-within:border-violet-500/60 focus-within:ring-2 focus-within:ring-violet-500/20'}`}>
-                <input
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  placeholder={schedule ? 'Ask me to adjust the schedule…' : 'Generate a schedule first…'}
-                  disabled={!schedule || loading}
-                  className="flex-1 text-sm text-white placeholder:text-white/25 bg-transparent focus:outline-none disabled:text-white/20 tracking-[-0.01em]"
-                />
-                <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${input.trim() && schedule && !loading ? 'bg-gradient-to-br from-violet-500 to-blue-500 hover:from-violet-400 hover:to-blue-400 text-white shadow-md shadow-violet-500/30' : 'bg-white/8 text-white/25'}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-                  </svg>
-                </button>
               </div>
             </div>
-          </div>
-        </div>
+          </StepCard>
+        )}
+
       </div>
 
       {/* How it works — broad audience */}
       <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] border-t border-white/8 mt-2">
         <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="md:col-span-3 text-center mb-2">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent mb-4">
-              Every student, perfectly placed.
-            </h2>
-            <p className="text-white/50 text-base max-w-2xl mx-auto leading-relaxed tracking-[-0.01em]">
-              ClassMaker.ai helps afterschool programs, enrichment centers, and school coordinators build smart weekly schedules in seconds — no spreadsheets, no back-and-forth.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent mb-4">Every student, perfectly placed.</h2>
+            <p className="text-white/50 text-base max-w-2xl mx-auto leading-relaxed tracking-[-0.01em]">ClassMaker.ai helps afterschool programs, enrichment centers, and school coordinators build smart weekly schedules in seconds — no spreadsheets, no back-and-forth.</p>
           </div>
-
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/20 flex items-center justify-center mb-4">
-              <span className="text-blue-400 text-lg">⚡</span>
-            </div>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/20 flex items-center justify-center mb-4"><span className="text-blue-400 text-lg">⚡</span></div>
             <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">From roster to schedule in seconds</h3>
-            <p className="text-white/40 text-xs leading-relaxed">
-              Enter your students and available classes — manually or by uploading a CSV. The AI reads each student&apos;s grade, pickup time, and activity preferences, then builds a complete weekly schedule that respects every constraint automatically.
-            </p>
+            <p className="text-white/40 text-xs leading-relaxed">Enter your students and available classes — manually or by uploading a CSV. The AI reads each student&apos;s grade, pickup time, and activity preferences, then builds a complete weekly schedule that respects every constraint automatically.</p>
           </div>
-
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/20 border border-violet-400/20 flex items-center justify-center mb-4">
-              <span className="text-violet-400 text-lg">✦</span>
-            </div>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/20 border border-violet-400/20 flex items-center justify-center mb-4"><span className="text-violet-400 text-lg">✦</span></div>
             <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">Adjust with plain English</h3>
-            <p className="text-white/40 text-xs leading-relaxed">
-              Need to make a change? Just type it. Say something like &ldquo;Move Emma out of Basketball on Tuesday&rdquo; or &ldquo;Give all 3rd graders a study block on Mondays&rdquo; — the AI updates the schedule instantly, no re-entering data required.
-            </p>
+            <p className="text-white/40 text-xs leading-relaxed">Need to make a change? Just type it. Say something like &ldquo;Move Emma out of Basketball on Tuesday&rdquo; or &ldquo;Give all 3rd graders a study block on Mondays&rdquo; — the AI updates the schedule instantly, no re-entering data required.</p>
           </div>
-
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-all duration-300">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border border-emerald-400/20 flex items-center justify-center mb-4">
-              <span className="text-emerald-400 text-lg">🗓️</span>
-            </div>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border border-emerald-400/20 flex items-center justify-center mb-4"><span className="text-emerald-400 text-lg">🗓️</span></div>
             <h3 className="text-white font-semibold text-sm mb-2 tracking-[-0.01em]">See the full picture</h3>
-            <p className="text-white/40 text-xs leading-relaxed">
-              View each student&apos;s personal weekly schedule, then switch to the Master Schedule to see every class running across the whole week — including how many students are in each slot — so coordinators and principals always have the full picture.
-            </p>
+            <p className="text-white/40 text-xs leading-relaxed">View each student&apos;s personal weekly schedule, then switch to the Master Schedule to see every class running across the whole week — including how many students are in each slot — so coordinators and principals always have the full picture.</p>
           </div>
-
           <div className="md:col-span-3 flex flex-wrap justify-center gap-3 pt-2">
             {['For Afterschool Programs', 'For Enrichment Centers', 'For Principals & Coordinators', 'Manual or CSV Input', 'AI-Generated & Editable'].map(tag => (
               <span key={tag} className="text-[11px] text-white/40 border border-white/10 px-3 py-1 rounded-full bg-white/3">{tag}</span>
