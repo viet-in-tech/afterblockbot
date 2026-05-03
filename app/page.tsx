@@ -486,28 +486,72 @@ export default function Home() {
             </div>
           )}
 
-          {/* Chat */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="border-l-4 border-orange-400 px-4 py-3">
-              <h2 className="font-bold text-[#1f1f3d] text-sm">Refine with Chat</h2>
-            </div>
-            <div className="px-4 pb-4 pt-2">
-              <div className="space-y-2 max-h-52 overflow-y-auto mb-3 pr-1">
-                {messages.map((m, i) => (
-                  <div key={i} className={`text-sm px-3 py-2 rounded-lg ${m.role === 'user' ? 'bg-[#e8f0fe] text-[#1a56db] ml-10' : 'bg-gray-50 text-gray-700 mr-10 border border-gray-100'}`}>
-                    {m.content}
-                  </div>
-                ))}
-                {loading && schedule && <div className="text-sm text-gray-400 italic px-3">Thinking...</div>}
+          {/* Chat — Perplexity/Gemini style */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0">
+                <span className="text-white text-sm leading-none">✦</span>
               </div>
-              <div className="flex gap-2">
-                <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  placeholder={schedule ? 'e.g. "Move Emma out of Basketball on Tuesday"' : 'Generate a schedule first...'}
+              <h2 className="font-semibold text-gray-800 text-sm">AI Scheduler Assistant</h2>
+            </div>
+
+            <div className="px-5 py-4 space-y-4 min-h-32 max-h-72 overflow-y-auto">
+              {messages.length === 0 && (
+                <div className="text-center py-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-white text-xl leading-none">✦</span>
+                  </div>
+                  <p className="text-sm text-gray-500">Generate a schedule, then ask me to refine it.</p>
+                  <p className="text-xs text-gray-400 mt-1">e.g. &quot;Move Emma out of Basketball on Tuesday&quot;</p>
+                </div>
+              )}
+              {messages.map((m, i) =>
+                m.role === 'user' ? (
+                  <div key={i} className="flex justify-end">
+                    <div className="bg-[#0073ea] text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] leading-relaxed">
+                      {m.content}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={i} className="flex gap-2.5 items-start">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-white text-xs leading-none">✦</span>
+                    </div>
+                    <div className="bg-gray-50 border border-gray-100 text-gray-700 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] leading-relaxed">
+                      {m.content}
+                    </div>
+                  </div>
+                )
+              )}
+              {loading && schedule && (
+                <div className="flex gap-2.5 items-center">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0">
+                    <span className="text-white text-xs leading-none">✦</span>
+                  </div>
+                  <div className="flex gap-1 px-4 py-3 bg-gray-50 rounded-2xl rounded-tl-sm border border-gray-100">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-4 pb-4">
+              <div className={`flex items-center gap-2 border rounded-2xl px-4 py-2.5 transition-all ${!schedule || loading ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 focus-within:border-[#0073ea] focus-within:ring-2 focus-within:ring-blue-100'}`}>
+                <input
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                  placeholder={schedule ? 'Ask me to adjust the schedule...' : 'Generate a schedule first...'}
                   disabled={!schedule || loading}
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-50 disabled:text-gray-400" />
+                  className="flex-1 text-sm text-gray-900 placeholder:text-gray-400 bg-transparent focus:outline-none disabled:text-gray-400"
+                />
                 <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
-                  className="bg-[#0073ea] hover:bg-[#0060c0] text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition">
-                  Send
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 ${input.trim() && schedule && !loading ? 'bg-[#0073ea] hover:bg-[#0060c0] text-white' : 'bg-gray-200 text-gray-400'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                  </svg>
                 </button>
               </div>
             </div>
