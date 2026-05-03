@@ -236,6 +236,16 @@ export default function Home() {
               <div>
                 <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV)} className="text-sm w-full" />
                 {studentsCSV && <p className="text-xs text-green-600 mt-1">✓ Loaded</p>}
+                <div className="mt-2 p-2.5 bg-indigo-50 rounded-lg text-xs text-gray-600 space-y-1">
+                  <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
+                  <ul className="space-y-0.5 list-none">
+                    <li><span className="font-medium text-gray-800">name</span> — Student's full name (e.g. Emma Smith)</li>
+                    <li><span className="font-medium text-gray-800">grade</span> — Grade level: 1–8</li>
+                    <li><span className="font-medium text-gray-800">pickup_block</span> — Latest block they can stay: BLK0 (3:30 PM), BLK1 (4:30 PM), BLK2 (5:30 PM), BLK3 (6:30 PM)</li>
+                    <li><span className="font-medium text-gray-800">goals</span> — Academic focus areas, separated by + (e.g. reading+math)</li>
+                    <li><span className="font-medium text-gray-800">preferences</span> — Activity types, separated by + (e.g. Academic+Music)</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
@@ -316,6 +326,19 @@ export default function Home() {
               <div>
                 <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV)} className="text-sm w-full" />
                 {classesCSV && <p className="text-xs text-green-600 mt-1">✓ Loaded</p>}
+                <div className="mt-2 p-2.5 bg-indigo-50 rounded-lg text-xs text-gray-600 space-y-1">
+                  <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
+                  <ul className="space-y-0.5 list-none">
+                    <li><span className="font-medium text-gray-800">name</span> — Class name (e.g. Group Piano)</li>
+                    <li><span className="font-medium text-gray-800">day</span> — Day of the week (e.g. Monday)</li>
+                    <li><span className="font-medium text-gray-800">block_start</span> — First time block: BLK0 (2:30), BLK1 (3:30), BLK2 (4:30), BLK3 (5:30)</li>
+                    <li><span className="font-medium text-gray-800">block_end</span> — Last time block (same as block_start if single block)</li>
+                    <li><span className="font-medium text-gray-800">grade_min</span> — Lowest grade allowed: 1–8</li>
+                    <li><span className="font-medium text-gray-800">grade_max</span> — Highest grade allowed: 1–8</li>
+                    <li><span className="font-medium text-gray-800">capacity</span> — Max number of students</li>
+                    <li><span className="font-medium text-gray-800">type</span> — Activity category: Academic, Art, Music, or Athletic</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
