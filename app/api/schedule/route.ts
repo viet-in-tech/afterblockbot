@@ -46,9 +46,10 @@ Respond ONLY with valid JSON — no markdown, no code blocks, no extra text:
 
 export async function POST(req: NextRequest) {
   try {
-    const { studentsCSV, classesCSV, messages, currentSchedule } = await req.json();
+    const { studentsCSV, classesCSV, messages, currentSchedule, weekLabel } = await req.json();
 
-    const dataContext = `STUDENT ROSTER:\n${studentsCSV}\n\nCLASS CATALOG:\n${classesCSV}`;
+    const weekLine = weekLabel ? `\nSCHEDULE WEEK: ${weekLabel}` : '';
+    const dataContext = `STUDENT ROSTER:\n${studentsCSV}\n\nCLASS CATALOG:\n${classesCSV}${weekLine}`;
 
     type ApiMessage = { role: 'user' | 'assistant'; content: string };
     let apiMessages: ApiMessage[];

@@ -103,6 +103,34 @@ function blockLabel(key: string) {
   return `${key} (${map[key]})`;
 }
 
+function getCurrentWeekValue(): string {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const dow = jan4.getUTCDay() || 7;
+  const startOfW1 = new Date(jan4);
+  startOfW1.setUTCDate(jan4.getUTCDate() - dow + 1);
+  const weekNum = Math.ceil((now.getTime() - startOfW1.getTime() + 1) / (7 * 24 * 60 * 60 * 1000));
+  return `${year}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+function weekValueToLabel(weekValue: string): string {
+  if (!weekValue) return '';
+  const [yearStr, weekStr] = weekValue.split('-W');
+  const year = parseInt(yearStr);
+  const week = parseInt(weekStr);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const dow = jan4.getUTCDay() || 7;
+  const startOfW1 = new Date(jan4);
+  startOfW1.setUTCDate(jan4.getUTCDate() - dow + 1);
+  const monday = new Date(startOfW1);
+  monday.setUTCDate(startOfW1.getUTCDate() + (week - 1) * 7);
+  const friday = new Date(monday);
+  friday.setUTCDate(monday.getUTCDate() + 4);
+  const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return `${fmt(monday)} – ${fmt(friday)}, ${year}`;
+}
+
 function StepCard({
   step, chip, title, description, open, onToggle, children, flush, accentBar,
 }: {
@@ -292,6 +320,8 @@ export default function Home() {
   const [setupSuggestions, setSetupSuggestions] = useState<{ preferences: string[]; classTypes: string[]; message: string } | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
 
+  const [selectedWeek, setSelectedWeek] = useState<string>(getCurrentWeekValue());
+
   const [showStudents, setShowStudents] = useState(true);
   const [showClasses, setShowClasses] = useState(true);
   const [showStudentSchedule, setShowStudentSchedule] = useState(true);
@@ -356,7 +386,7 @@ export default function Home() {
       const res = await fetch('/api/schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentsCSV: getStudentsData(), classesCSV: getClassesData(), messages: msgs, currentSchedule: current }),
+        body: JSON.stringify({ studentsCSV: getStudentsData(), classesCSV: getClassesData(), messages: msgs, currentSchedule: current, weekLabel: selectedWeek ? `Week ${selectedWeek.split('-W')[1]} (${weekValueToLabel(selectedWeek)})` : undefined }),
       });
       const data = await res.json();
       if (!res.ok || data.error) { setApiError(data.error || 'Unknown error'); return; }
@@ -434,7 +464,7 @@ export default function Home() {
         </div>
         <div className="flex-1">
           <h1 className="text-base font-bold tracking-[-0.02em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent">ClassMaker AI</h1>
-          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">AI Agent that creates a class Master Schedule in seconds!</p>
+          <p className="text-[10px] text-white/40 tracking-wide uppercase mt-0.5">Feed it the info, and this AI Agent will create a master schedule of classes in seconds!</p>
         </div>
         <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-white/30 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -766,6 +796,20 @@ export default function Home() {
               {loading && !schedule ? '✦ Generating…' : '⚡ Generate'}
             </button>
           </div>
+          <div className="px-5 pb-4 flex items-center gap-3 border-t border-gray-50">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">Schedule week</span>
+              <input
+                type="week"
+                value={selectedWeek}
+                onChange={e => setSelectedWeek(e.target.value)}
+                className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              />
+            </div>
+            {selectedWeek && (
+              <span className="text-[11px] text-emerald-600 font-medium">{weekValueToLabel(selectedWeek)}</span>
+            )}
+          </div>
           {apiError && <div className="px-5 pb-4"><p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 break-words border border-red-100">{apiError}</p></div>}
         </div>
 
@@ -961,6 +1005,20 @@ export default function Home() {
           </div>
         )}
 
+      </div>
+
+      {/* Origin Story */}
+      <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] mt-2">
+        <div className="max-w-4xl mx-auto px-6 py-14 text-center">
+          <span className="inline-block text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">Our Story</span>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-[-0.03em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent mb-6 leading-snug max-w-2xl mx-auto">
+            Why ClassMaker AI?
+          </h2>
+          <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
+            I spent years as a public school and afterschool educator watching master schedules drain time that should&apos;ve gone to students. So I built the solution I always wanted. ClassMaker AI uses an AI Agent to handle the scheduling — and return that time to you.
+          </p>
+          <p className="text-white/30 text-sm mt-5 font-medium tracking-wide">— Viet Nguyen, ClassMaker AI</p>
+        </div>
       </div>
 
       {/* Contact */}

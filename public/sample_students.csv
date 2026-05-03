@@ -1,11 +1,51 @@
 name,grade,pickup_block,goals,preferences
-Emma Smith,2,BLK2,reading+math,Music+Art
-Liam Johnson,4,BLK3,writing+spelling,Basketball+Dance
-Sophia Lee,1,BLK1,math+phonics,Art+Music
-Noah Garcia,6,BLK3,homework+study skills,Basketball+Leadership
-Olivia Chen,3,BLK2,reading+chinese,Chinese+Music
-Ethan Kim,5,BLK3,math+science,Math+Leadership
+Emma Rodriguez,1,BLK1,reading+phonics,Art+Music
+Aiden Park,1,BLK2,math+phonics,Basketball+Art
+Mia Thompson,1,BLK1,reading+writing,Music+Dance
+Oliver Nguyen,1,BLK2,phonics+math,Math+Taekwondo
+Sophia Davis,1,BLK2,reading+art,Art+Dance
+Jackson White,1,BLK1,math+reading,Music+Basketball
+Emma Chen,2,BLK2,reading+math,Music+Art
+Liam Patel,2,BLK2,writing+spelling,Dance+Art
 Ava Martinez,2,BLK2,reading+art,Art+Dance
-Mason Patel,7,BLK3,homework+test prep,Basketball+Study
-Isabella Brown,4,BLK3,music+math,Music+Art
-Lucas Wilson,8,BLK3,leadership+study skills,Leadership+Study
+Noah Kim,2,BLK1,math+reading,Basketball+Music
+Isabella Brown,2,BLK2,music+art,Music+Dance
+Mason Lee,2,BLK3,homework+math,Math+Basketball
+Olivia Perez,3,BLK2,reading+chinese,Chinese+Music
+Ethan Johnson,3,BLK2,math+science,Basketball+Math
+Aria Wilson,3,BLK2,writing+reading,Art+Music
+Lucas Garcia,3,BLK3,math+homework,Basketball+Leadership
+Sofia Anderson,3,BLK2,dance+music,Dance+Music
+Elijah Thomas,3,BLK3,math+reading,Math+Taekwondo
+Charlotte Harris,4,BLK3,writing+spelling,Music+Art
+James Jackson,4,BLK3,homework+study,Basketball+Leadership
+Amelia Robinson,4,BLK2,reading+chinese,Chinese+Music
+Benjamin Lopez,4,BLK3,math+science,Math+Basketball
+Evelyn Walker,4,BLK2,dance+art,Dance+Art
+Henry Hall,4,BLK3,homework+reading,Basketball+Taekwondo
+Abigail Young,5,BLK3,homework+test prep,Basketball+Study
+Alexander Allen,5,BLK3,math+science,Math+Leadership
+Emily Hernandez,5,BLK3,reading+writing,Music+Art
+William King,5,BLK3,homework+study,Leadership+Basketball
+Elizabeth Wright,5,BLK3,math+science,Math+Chinese
+Michael Scott,5,BLK2,reading+homework,Art+Music
+Grace Torres,5,BLK3,dance+music,Dance+Music
+Daniel Flores,6,BLK3,homework+study skills,Basketball+Leadership
+Victoria Nguyen,6,BLK3,math+science,Chinese+Math
+Joseph Rivera,6,BLK3,homework+test prep,Basketball+Study
+Samantha Hill,6,BLK2,reading+writing,Music+Art
+David Cooper,6,BLK3,math+science,Math+Leadership
+Natalia Reed,6,BLK3,dance+music,Dance+Music
+Christopher Bailey,6,BLK3,homework+reading,Basketball+Taekwondo
+Madison Cox,7,BLK3,homework+test prep,Leadership+Study
+Andrew Richardson,7,BLK3,math+science,Math+Basketball
+Chloe Howard,7,BLK3,reading+writing,Music+Art
+Jayden Ward,7,BLK3,homework+study,Basketball+Leadership
+Lily Brooks,7,BLK3,dance+music,Dance+Chinese
+Nathan Watson,7,BLK3,math+homework,Math+Leadership
+Priya Sharma,7,BLK3,science+reading,Chinese+Music
+Zoe Kelly,8,BLK3,leadership+study skills,Leadership+Study
+Ryan Sanders,8,BLK3,math+science,Math+Basketball
+Hannah Price,8,BLK3,reading+writing,Music+Art
+Caleb Bennett,8,BLK3,homework+study skills,Leadership+Math
+Aubrey Murphy,8,BLK3,dance+leadership,Dance+Leadership
