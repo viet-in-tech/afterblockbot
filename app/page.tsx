@@ -339,6 +339,10 @@ export default function Home() {
                   </label>
                   {studentsCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{studentsCSVWarning}</p>}
                   {studentsCSV && !studentsCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+                  <a href="/sample_students.csv" download className="flex items-center gap-1.5 text-xs text-violet-700 hover:underline font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
+                    Download sample_students.csv
+                  </a>
                   <div className="mt-2 p-2.5 bg-violet-50 rounded-lg text-xs text-gray-600 space-y-1 border border-violet-100">
                     <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
                     <ul className="space-y-0.5 list-none">
@@ -426,6 +430,10 @@ export default function Home() {
                   </label>
                   {classesCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{classesCSVWarning}</p>}
                   {classesCSV && !classesCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+                  <a href="/sample_classes.csv" download className="flex items-center gap-1.5 text-xs text-blue-700 hover:underline font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z"/><path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z"/></svg>
+                    Download sample_classes.csv
+                  </a>
                   <div className="mt-2 p-2.5 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-1 border border-blue-100">
                     <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
                     <ul className="space-y-0.5 list-none">

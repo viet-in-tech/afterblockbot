@@ -1,0 +1,13 @@
+name,day,block_start,block_end,grade_min,grade_max,capacity,type
+Group Piano,Thursday,BLK1,BLK1,1,8,8,Music
+Beginning Hip Hop Dance,Wednesday,BLK1,BLK1,1,4,12,Dance
+Beginning Basketball,Tuesday,BLK2,BLK2,1,4,14,Athletic
+Beginning Chinese,Thursday,BLK2,BLK2,1,4,10,Academic
+Euro-Gymnastics,Friday,BLK2,BLK2,1,4,10,Athletic
+Taekwondo,Monday,BLK3,BLK3,1,8,15,Athletic
+Lyceum Orchestra,Monday,BLK1,BLK2,1,8,20,Music
+Advanced Basketball,Tuesday,BLK3,BLK3,5,8,12,Athletic
+Math Sprints,Wednesday,BLK0,BLK0,1,4,10,Academic
+Art Studio,Friday,BLK1,BLK1,1,4,12,Art
+Study Skills Workshop,Monday,BLK2,BLK2,5,8,10,Academic
+Leadership Club,Thursday,BLK3,BLK3,5,8,8,Club
