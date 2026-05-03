@@ -110,7 +110,7 @@ function ModeToggle({ mode, onChange }: { mode: 'csv' | 'manual'; onChange: (m: 
         <button
           key={m}
           onClick={() => onChange(m)}
-          className={`px-3 py-1 capitalize transition ${mode === m ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+          className={`px-3 py-1 capitalize transition ${mode === m ? 'bg-[#0073ea] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           {m === 'manual' ? 'Manual' : 'CSV'}
         </button>
@@ -211,266 +211,264 @@ export default function Home() {
 
   const currentStudent = schedule?.students.find(s => s.name === selectedStudent);
 
+  const DAY_COLORS = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500'];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-indigo-700 text-white px-6 py-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-[#f6f7fb]">
+      <header className="bg-[#1f1f3d] text-white px-6 py-3 flex items-center gap-3 shadow-md">
         <span className="text-2xl">🗓️</span>
-        <div>
-          <h1 className="text-xl font-bold">ClassMaker.ai</h1>
-          <p className="text-indigo-200 text-sm">AI-powered afterschool block scheduler — classmaker.ai</p>
+        <div className="flex-1">
+          <h1 className="text-lg font-bold tracking-tight">ClassMaker.ai</h1>
+          <p className="text-[#a5b4fc] text-xs">AI-powered afterschool block scheduler</p>
         </div>
+        <span className="text-xs text-[#6366f1] hidden sm:block font-medium">classmaker.ai</span>
       </header>
 
-      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left panel */}
+      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Left panel — inputs */}
         <div className="space-y-4">
 
           {/* Students */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">1. Students</h2>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="border-l-4 border-violet-500 px-4 pt-3 pb-2 flex items-center justify-between bg-white">
+              <h2 className="font-bold text-[#1f1f3d] text-sm">1. Students</h2>
               <ModeToggle mode={studentMode} onChange={setStudentMode} />
             </div>
-
-            {studentMode === 'csv' ? (
-              <div>
-                <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV)} className="text-sm w-full" />
-                {studentsCSV && <p className="text-xs text-green-600 mt-1">✓ Loaded</p>}
-                <div className="mt-2 p-2.5 bg-indigo-50 rounded-lg text-xs text-gray-600 space-y-1">
-                  <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
-                  <ul className="space-y-0.5 list-none">
-                    <li><span className="font-medium text-gray-800">name</span> — Student's full name (e.g. Emma Smith)</li>
-                    <li><span className="font-medium text-gray-800">grade</span> — Grade level: 1–8</li>
-                    <li><span className="font-medium text-gray-800">pickup_block</span> — Latest block they can stay: BLK0 (3:30 PM), BLK1 (4:30 PM), BLK2 (5:30 PM), BLK3 (6:30 PM)</li>
-                    <li><span className="font-medium text-gray-800">goals</span> — Academic focus areas, separated by + (e.g. reading+math)</li>
-                    <li><span className="font-medium text-gray-800">preferences</span> — Activity types, separated by + (e.g. Academic+Music)</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    value={studentForm.firstName}
-                    onChange={e => setStudentForm(f => ({ ...f, firstName: e.target.value }))}
-                    placeholder="First name"
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                  />
-                  <input
-                    value={studentForm.lastName}
-                    onChange={e => setStudentForm(f => ({ ...f, lastName: e.target.value }))}
-                    placeholder="Last name"
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Grade</label>
-                    <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>Grade {g}</option>)}
-                    </select>
+            <div className="px-4 pb-4 pt-2 space-y-2">
+              {studentMode === 'csv' ? (
+                <>
+                  <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV)} className="text-sm w-full" />
+                  {studentsCSV && <p className="text-xs text-emerald-600 mt-1">✓ Loaded</p>}
+                  <div className="mt-2 p-2.5 bg-violet-50 rounded-lg text-xs text-gray-600 space-y-1 border border-violet-100">
+                    <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
+                    <ul className="space-y-0.5 list-none">
+                      <li><span className="font-medium text-gray-800">name</span> — Student&apos;s full name (e.g. Emma Smith)</li>
+                      <li><span className="font-medium text-gray-800">grade</span> — Grade level: 1–8</li>
+                      <li><span className="font-medium text-gray-800">pickup_block</span> — Latest block they can stay: BLK0 (3:30 PM), BLK1 (4:30 PM), BLK2 (5:30 PM), BLK3 (6:30 PM)</li>
+                      <li><span className="font-medium text-gray-800">goals</span> — Academic focus areas, separated by + (e.g. reading+math)</li>
+                      <li><span className="font-medium text-gray-800">preferences</span> — Activity types, separated by + (e.g. Academic+Music)</li>
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={studentForm.firstName} onChange={e => setStudentForm(f => ({ ...f, firstName: e.target.value }))} placeholder="First name"
+                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+                    <input value={studentForm.lastName} onChange={e => setStudentForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Last name"
+                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Grade</label>
+                      <select value={studentForm.grade} onChange={e => setStudentForm(f => ({ ...f, grade: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
+                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>Grade {g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Pickup</label>
+                      <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-300">
+                        <option value="BLK0">3:30 PM</option>
+                        <option value="BLK1">4:30 PM</option>
+                        <option value="BLK2">5:30 PM</option>
+                        <option value="BLK3">6:30 PM</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Pickup</label>
-                    <select value={studentForm.pickupBlock} onChange={e => setStudentForm(f => ({ ...f, pickupBlock: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      <option value="BLK0">3:30 PM</option>
-                      <option value="BLK1">4:30 PM</option>
-                      <option value="BLK2">5:30 PM</option>
-                      <option value="BLK3">6:30 PM</option>
-                    </select>
+                    <label className="text-xs text-gray-500 mb-1 block">Preferences</label>
+                    <div className="flex flex-wrap gap-1">
+                      {PREFERENCE_OPTIONS.map(pref => (
+                        <button key={pref} onClick={() => togglePreference(pref)}
+                          className={`text-xs px-2 py-0.5 rounded-full border transition ${studentForm.preferences.includes(pref) ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-300 text-gray-600 hover:border-violet-400'}`}>
+                          {pref}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Preferences</label>
-                  <div className="flex flex-wrap gap-1">
-                    {PREFERENCE_OPTIONS.map(pref => (
-                      <button key={pref} onClick={() => togglePreference(pref)}
-                        className={`text-xs px-2 py-0.5 rounded-full border transition ${studentForm.preferences.includes(pref) ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 text-gray-600 hover:border-indigo-400'}`}>
-                        {pref}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <input
-                  value={studentForm.goals}
-                  onChange={e => setStudentForm(f => ({ ...f, goals: e.target.value }))}
-                  placeholder="Academic goals (e.g. reading, math)"
-                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-                <button onClick={addStudent} disabled={!studentForm.firstName.trim() || !studentForm.lastName.trim()}
-                  className="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-indigo-100 transition">
-                  + Add Student
-                </button>
-                {manualStudents.length > 0 && (
-                  <div className="space-y-1 pt-1">
-                    {manualStudents.map((s, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm">
-                        <span className="text-gray-700">{s.firstName} {s.lastName} <span className="text-gray-400">· Gr. {s.grade}</span></span>
-                        <button onClick={() => setManualStudents(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition text-xs ml-2">✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                  <input value={studentForm.goals} onChange={e => setStudentForm(f => ({ ...f, goals: e.target.value }))} placeholder="Academic goals (e.g. reading, math)"
+                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+                  <button onClick={addStudent} disabled={!studentForm.firstName.trim() || !studentForm.lastName.trim()}
+                    className="w-full bg-violet-50 text-violet-700 border border-violet-200 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-violet-100 transition">
+                    + Add Student
+                  </button>
+                  {manualStudents.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      {manualStudents.map((s, i) => (
+                        <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm border border-gray-100">
+                          <span className="text-gray-700">{s.firstName} {s.lastName} <span className="text-gray-400">· Gr. {s.grade}</span></span>
+                          <button onClick={() => setManualStudents(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition text-xs ml-2">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Classes */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">2. Classes</h2>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="border-l-4 border-blue-500 px-4 pt-3 pb-2 flex items-center justify-between bg-white">
+              <h2 className="font-bold text-[#1f1f3d] text-sm">2. Classes</h2>
               <ModeToggle mode={classMode} onChange={setClassMode} />
             </div>
-
-            {classMode === 'csv' ? (
-              <div>
-                <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV)} className="text-sm w-full" />
-                {classesCSV && <p className="text-xs text-green-600 mt-1">✓ Loaded</p>}
-                <div className="mt-2 p-2.5 bg-indigo-50 rounded-lg text-xs text-gray-600 space-y-1">
-                  <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
-                  <ul className="space-y-0.5 list-none">
-                    <li><span className="font-medium text-gray-800">name</span> — Class name (e.g. Group Piano)</li>
-                    <li><span className="font-medium text-gray-800">day</span> — Day of the week (e.g. Monday)</li>
-                    <li><span className="font-medium text-gray-800">block_start</span> — First time block: BLK0 (2:30), BLK1 (3:30), BLK2 (4:30), BLK3 (5:30)</li>
-                    <li><span className="font-medium text-gray-800">block_end</span> — Last time block (same as block_start if single block)</li>
-                    <li><span className="font-medium text-gray-800">grade_min</span> — Lowest grade allowed: 1–8</li>
-                    <li><span className="font-medium text-gray-800">grade_max</span> — Highest grade allowed: 1–8</li>
-                    <li><span className="font-medium text-gray-800">capacity</span> — Max number of students</li>
-                    <li><span className="font-medium text-gray-800">type</span> — Activity category: Academic, Art, Music, or Athletic</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  value={classForm.name}
-                  onChange={e => setClassForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="Class name (e.g. Group Piano)"
-                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Day</label>
-                    <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {DAYS.map(d => <option key={d}>{d}</option>)}
-                    </select>
+            <div className="px-4 pb-4 pt-2 space-y-2">
+              {classMode === 'csv' ? (
+                <>
+                  <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV)} className="text-sm w-full" />
+                  {classesCSV && <p className="text-xs text-emerald-600 mt-1">✓ Loaded</p>}
+                  <div className="mt-2 p-2.5 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-1 border border-blue-100">
+                    <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
+                    <ul className="space-y-0.5 list-none">
+                      <li><span className="font-medium text-gray-800">name</span> — Class name (e.g. Group Piano)</li>
+                      <li><span className="font-medium text-gray-800">day</span> — Day of the week (e.g. Monday)</li>
+                      <li><span className="font-medium text-gray-800">block_start</span> — First time block: BLK0 (2:30), BLK1 (3:30), BLK2 (4:30), BLK3 (5:30)</li>
+                      <li><span className="font-medium text-gray-800">block_end</span> — Last time block (same as block_start if single block)</li>
+                      <li><span className="font-medium text-gray-800">grade_min</span> — Lowest grade allowed: 1–8</li>
+                      <li><span className="font-medium text-gray-800">grade_max</span> — Highest grade allowed: 1–8</li>
+                      <li><span className="font-medium text-gray-800">capacity</span> — Max number of students</li>
+                      <li><span className="font-medium text-gray-800">type</span> — Activity category: Academic, Art, Music, or Athletic</li>
+                    </ul>
                   </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
-                    <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {CLASS_TYPES.map(t => <option key={t}>{t}</option>)}
-                    </select>
+                </>
+              ) : (
+                <>
+                  <input value={classForm.name} onChange={e => setClassForm(f => ({ ...f, name: e.target.value }))} placeholder="Class name (e.g. Group Piano)"
+                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Day</label>
+                      <select value={classForm.day} onChange={e => setClassForm(f => ({ ...f, day: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {DAYS.map(d => <option key={d}>{d}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
+                      <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {CLASS_TYPES.map(t => <option key={t}>{t}</option>)}
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Start block</label>
-                    <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
-                    </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Start block</label>
+                      <select value={classForm.blockStart} onChange={e => setClassForm(f => ({ ...f, blockStart: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">End block</label>
+                      <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">End block</label>
-                    <select value={classForm.blockEnd} onChange={e => setClassForm(f => ({ ...f, blockEnd: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {BLOCK_KEYS.map(b => <option key={b} value={b}>{blockLabel(b)}</option>)}
-                    </select>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Min grade</label>
+                      <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Max grade</label>
+                      <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-0.5 block">Capacity</label>
+                      <input type="number" min={1} value={classForm.capacity} onChange={e => setClassForm(f => ({ ...f, capacity: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Min grade</label>
-                    <select value={classForm.gradeMin} onChange={e => setClassForm(f => ({ ...f, gradeMin: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Max grade</label>
-                    <select value={classForm.gradeMax} onChange={e => setClassForm(f => ({ ...f, gradeMax: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                      {[1,2,3,4,5,6,7,8].map(g => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Capacity</label>
-                    <input type="number" min={1} value={classForm.capacity} onChange={e => setClassForm(f => ({ ...f, capacity: e.target.value }))}
-                      className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
-                  </div>
-                </div>
-                {classError && <p className="text-xs text-red-500">{classError}</p>}
-                <button onClick={addClass}
-                  className="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-100 transition">
-                  + Add Class
-                </button>
-                {manualClasses.length > 0 && (
-                  <div className="space-y-1 pt-1 max-h-36 overflow-y-auto">
-                    {manualClasses.map((c, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-xs">
-                        <span className="text-gray-700 truncate">{c.name} <span className="text-gray-400">· {c.day} {c.blockStart}{c.blockEnd !== c.blockStart ? `–${c.blockEnd}` : ''}</span></span>
-                        <button onClick={() => setManualClasses(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition ml-2 shrink-0">✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                  {classError && <p className="text-xs text-red-500">{classError}</p>}
+                  <button onClick={addClass}
+                    className="w-full bg-blue-50 text-blue-700 border border-blue-200 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition">
+                    + Add Class
+                  </button>
+                  {manualClasses.length > 0 && (
+                    <div className="space-y-1 pt-1 max-h-36 overflow-y-auto">
+                      {manualClasses.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-xs border border-gray-100">
+                          <span className="text-gray-700 truncate">{c.name} <span className="text-gray-400">· {c.day} {c.blockStart}{c.blockEnd !== c.blockStart ? `–${c.blockEnd}` : ''}</span></span>
+                          <button onClick={() => setManualClasses(prev => prev.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-400 transition ml-2 shrink-0">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Generate */}
-          <div className="bg-white rounded-xl shadow p-4 space-y-3">
-            <button
-              onClick={generateSchedule}
-              disabled={!hasStudents || !hasClasses || loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition"
-            >
-              {loading && !schedule ? 'Generating...' : '3. Generate Schedule'}
-            </button>
-            {apiError && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 break-words">{apiError}</p>}
-          </div>
+          <button onClick={generateSchedule} disabled={!hasStudents || !hasClasses || loading}
+            className="w-full bg-[#0073ea] hover:bg-[#0060c0] text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition shadow-sm">
+            {loading && !schedule ? '⏳ Generating...' : '⚡ Generate Schedule'}
+          </button>
+          {apiError && <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 break-words border border-red-100">{apiError}</p>}
+        </div>
 
-          {/* Student selector */}
+        {/* Right panel — schedule + chat */}
+        <div className="lg:col-span-2 space-y-4">
+
+          {/* Student selector tabs — above schedule */}
           {schedule && (
-            <div className="bg-white rounded-xl shadow p-4">
-              <h2 className="font-semibold text-gray-800 mb-2">View Schedule</h2>
-              <div className="space-y-1">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Select Student</p>
+              <div className="flex flex-wrap gap-2">
                 {schedule.students.map(s => (
                   <button key={s.name} onClick={() => setSelectedStudent(s.name)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${selectedStudent === s.name ? 'bg-indigo-100 text-indigo-700 font-medium' : 'hover:bg-gray-100 text-gray-700'}`}>
-                    {s.name} <span className="text-gray-400 ml-1">· Gr. {s.grade}</span>
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      selectedStudent === s.name
+                        ? 'bg-[#0073ea] text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}>
+                    {s.name}
+                    <span className={`ml-1.5 text-xs ${selectedStudent === s.name ? 'text-blue-200' : 'text-gray-400'}`}>Gr. {s.grade}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Right panel */}
-        <div className="lg:col-span-2 space-y-4">
+          {/* Schedule grid */}
           {currentStudent ? (
-            <div className="bg-white rounded-xl shadow p-4">
-              <h2 className="font-semibold text-gray-800 mb-3">
-                {currentStudent.name}&apos;s Weekly Schedule
-                <span className="ml-2 text-sm font-normal text-gray-500">Grade {currentStudent.grade}</span>
-              </h2>
-              <div className="overflow-x-auto">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="border-l-4 border-emerald-500 px-4 py-3">
+                <h2 className="font-bold text-[#1f1f3d]">
+                  {currentStudent.name}&apos;s Weekly Schedule
+                  <span className="ml-2 text-sm font-normal text-gray-400">Grade {currentStudent.grade}</span>
+                </h2>
+              </div>
+              <div className="overflow-x-auto px-4 pb-4">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr>
-                      <th className="text-left p-2 bg-gray-100 rounded-tl-lg w-28 text-gray-600">Block</th>
-                      {DAYS.map(day => <th key={day} className="p-2 bg-gray-100 text-center text-gray-600 font-medium">{day}</th>)}
+                      <th className="text-left p-2 text-gray-400 font-medium text-xs w-24">Block</th>
+                      {DAYS.map((day, i) => (
+                        <th key={day} className={`p-2 text-center text-white text-xs font-semibold ${DAY_COLORS[i]}`}>
+                          {day.slice(0, 3)}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {BLOCKS.map(({ key, time }) => (
-                      <tr key={key} className="border-t border-gray-100">
-                        <td className="p-2">
-                          <div className="font-medium text-gray-700 text-xs">{key}</div>
+                    {BLOCKS.map(({ key, time }, rowIdx) => (
+                      <tr key={key} className={rowIdx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="p-2 border-t border-gray-100">
+                          <div className="font-semibold text-gray-700 text-xs">{key}</div>
                           <div className="text-xs text-gray-400">{time}</div>
                         </td>
                         {DAYS.map(day => {
                           const activity = currentStudent.schedule[day]?.[key];
                           return (
-                            <td key={day} className="p-2 text-center">
+                            <td key={day} className="p-2 text-center border-t border-gray-100">
                               {activity
-                                ? <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${getActivityColor(activity)}`}>{activity}</span>
+                                ? <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-medium ${getActivityColor(activity)}`}>{activity}</span>
                                 : <span className="text-gray-200 text-xs">—</span>}
                             </td>
                           );
@@ -482,35 +480,36 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow p-10 text-center text-gray-400">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center text-gray-400">
               <p className="text-5xl mb-3">🗓️</p>
               <p className="text-sm">Add students and classes, then generate a schedule.</p>
             </div>
           )}
 
-          <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="font-semibold text-gray-800 mb-3">Refine with Chat</h2>
-            <div className="space-y-2 max-h-52 overflow-y-auto mb-3 pr-1">
-              {messages.map((m, i) => (
-                <div key={i} className={`text-sm px-3 py-2 rounded-lg ${m.role === 'user' ? 'bg-indigo-50 text-indigo-800 ml-10' : 'bg-gray-50 text-gray-700 mr-10'}`}>
-                  {m.content}
-                </div>
-              ))}
-              {loading && schedule && <div className="text-sm text-gray-400 italic px-3">Thinking...</div>}
+          {/* Chat */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="border-l-4 border-orange-400 px-4 py-3">
+              <h2 className="font-bold text-[#1f1f3d] text-sm">Refine with Chat</h2>
             </div>
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder={schedule ? 'e.g. "Move Emma out of Basketball on Tuesday"' : 'Generate a schedule first...'}
-                disabled={!schedule || loading}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-50 disabled:text-gray-400"
-              />
-              <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition">
-                Send
-              </button>
+            <div className="px-4 pb-4 pt-2">
+              <div className="space-y-2 max-h-52 overflow-y-auto mb-3 pr-1">
+                {messages.map((m, i) => (
+                  <div key={i} className={`text-sm px-3 py-2 rounded-lg ${m.role === 'user' ? 'bg-[#e8f0fe] text-[#1a56db] ml-10' : 'bg-gray-50 text-gray-700 mr-10 border border-gray-100'}`}>
+                    {m.content}
+                  </div>
+                ))}
+                {loading && schedule && <div className="text-sm text-gray-400 italic px-3">Thinking...</div>}
+              </div>
+              <div className="flex gap-2">
+                <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                  placeholder={schedule ? 'e.g. "Move Emma out of Basketball on Tuesday"' : 'Generate a schedule first...'}
+                  disabled={!schedule || loading}
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-50 disabled:text-gray-400" />
+                <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
+                  className="bg-[#0073ea] hover:bg-[#0060c0] text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition">
+                  Send
+                </button>
+              </div>
             </div>
           </div>
         </div>
