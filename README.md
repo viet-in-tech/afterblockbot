@@ -1,2 +1,2 @@
 # ClassMaker.ai
-AI agent that turns a student roster into a full weekly afterschool block schedule — instantly.
+AI agent that turns a student roster into a full weekly afterschool block schedule — instantly and dynamically.
