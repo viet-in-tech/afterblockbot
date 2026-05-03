@@ -216,8 +216,8 @@ export default function Home() {
       <header className="bg-indigo-700 text-white px-6 py-4 flex items-center gap-3 shadow">
         <span className="text-2xl">🗓️</span>
         <div>
-          <h1 className="text-xl font-bold">AfterBlockBot</h1>
-          <p className="text-indigo-200 text-sm">AI-powered afterschool block scheduler</p>
+          <h1 className="text-xl font-bold">ClassMaker.ai</h1>
+          <p className="text-indigo-200 text-sm">AI-powered afterschool block scheduler — classmaker.ai</p>
         </div>
       </header>
 

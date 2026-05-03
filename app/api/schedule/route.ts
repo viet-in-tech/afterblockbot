@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { groq } from '@ai-sdk/groq';
 
-const SYSTEM_PROMPT = `You are AfterBlockBot, an AI scheduling assistant for afterschool programs.
+const SYSTEM_PROMPT = `You are ClassMaker.ai, an AI scheduling assistant for afterschool programs.
 
 ## Schedule Structure
 - 5 days: Monday, Tuesday, Wednesday, Thursday, Friday
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('AfterBlockBot API error:', message);
+    console.error('ClassMaker.ai API error:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
