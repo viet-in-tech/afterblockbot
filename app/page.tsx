@@ -1009,15 +1009,20 @@ export default function Home() {
 
       {/* Origin Story */}
       <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] mt-2">
-        <div className="max-w-4xl mx-auto px-6 py-14 text-center">
-          <span className="inline-block text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">Our Story</span>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-[-0.03em] bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-transparent mb-6 leading-snug max-w-2xl mx-auto">
-            Why ClassMaker AI?
-          </h2>
-          <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            I spent years as a public school and afterschool educator watching master schedules drain time that should&apos;ve gone to students. So I built the solution I always wanted. ClassMaker AI uses an AI Agent to handle the scheduling — and return that time to you.
-          </p>
-          <p className="text-white/30 text-sm mt-5 font-medium tracking-wide">— Viet Nguyen, ClassMaker AI</p>
+        <div className="max-w-4xl mx-auto px-6 py-14">
+          <div className="max-w-2xl">
+            <span className="inline-block text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-5">Our Story</span>
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-white mb-5">
+              Why ClassMaker AI?
+            </h2>
+            <p className="text-white/55 text-[15px] leading-[1.75] mb-8">
+              I spent years as a public school and afterschool educator watching master schedules drain time that should&apos;ve gone to students. So I built the solution I always wanted. ClassMaker AI uses an AI Agent to handle the scheduling — and return that time to you.
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-px bg-white/20" />
+              <p className="text-white/35 text-[13px] font-medium tracking-wide">Viet Nguyen, Founder of ClassMaker AI</p>
+            </div>
+          </div>
         </div>
       </div>
 
