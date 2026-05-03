@@ -50,8 +50,8 @@ const BLOCKS: { key: BlockKey; time: string }[] = [
 
 const BLOCK_KEYS = ['BLK0', 'BLK1', 'BLK2', 'BLK3'];
 const DAYS: DayKey[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-const CLASS_TYPES = ['Academic', 'Music', 'Athletic', 'Dance', 'Art', 'Club', 'Study', 'Language'];
-const PREFERENCE_OPTIONS = ['Music', 'Art', 'Dance', 'Basketball', 'Chinese', 'Reading', 'Math', 'Taekwondo', 'Gymnastics', 'Leadership'];
+const DEFAULT_CLASS_TYPES = ['Academic', 'Music', 'Athletic', 'Dance', 'Art', 'Club', 'Study', 'Language'];
+const DEFAULT_PREFERENCES = ['Music', 'Art', 'Dance', 'Basketball', 'Chinese', 'Reading', 'Math', 'Taekwondo', 'Gymnastics', 'Leadership'];
 
 const EMPTY_STUDENT: ManualStudent = {
   firstName: '', lastName: '', grade: '1', pickupBlock: 'BLK2', preferences: [], goals: '',
@@ -217,6 +217,17 @@ export default function Home() {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  const [customPreferences, setCustomPreferences] = useState<string[]>([...DEFAULT_PREFERENCES]);
+  const [customClassTypes, setCustomClassTypes] = useState<string[]>([...DEFAULT_CLASS_TYPES]);
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [newPrefInput, setNewPrefInput] = useState('');
+  const [newTypeInput, setNewTypeInput] = useState('');
+  const [setupMessages, setSetupMessages] = useState<Message[]>([]);
+  const [setupInput, setSetupInput] = useState('');
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupSuggestions, setSetupSuggestions] = useState<{ preferences: string[]; classTypes: string[]; message: string } | null>(null);
+  const [setupError, setSetupError] = useState<string | null>(null);
+
   const handleFileUpload = (
     setter: (val: string) => void,
     warnSetter: (w: string | null) => void,
@@ -300,6 +311,47 @@ export default function Home() {
     await callAPI(updated, schedule);
   };
 
+  const sendSetupMessage = async () => {
+    if (!setupInput.trim()) return;
+    const updated: Message[] = [...setupMessages, { role: 'user' as const, content: setupInput }];
+    setSetupMessages(updated);
+    setSetupInput('');
+    setSetupLoading(true);
+    setSetupError(null);
+    setSetupSuggestions(null);
+    try {
+      const res = await fetch('/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: updated }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setSetupError(data.error || 'Unknown error'); return; }
+      setSetupMessages(prev => [...prev, { role: 'assistant' as const, content: data.message }]);
+      if (data.preferences?.length > 0 || data.classTypes?.length > 0) {
+        setSetupSuggestions({ preferences: data.preferences ?? [], classTypes: data.classTypes ?? [], message: data.message });
+      }
+    } catch (err) {
+      setSetupError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSetupLoading(false);
+    }
+  };
+
+  const addPreference = () => {
+    const v = newPrefInput.trim();
+    if (!v || customPreferences.includes(v)) return;
+    setCustomPreferences(p => [...p, v]);
+    setNewPrefInput('');
+  };
+
+  const addClassType = () => {
+    const v = newTypeInput.trim();
+    if (!v || customClassTypes.includes(v)) return;
+    setCustomClassTypes(t => [...t, v]);
+    setNewTypeInput('');
+  };
+
   const currentStudent = schedule?.students.find(s => s.name === selectedStudent);
 
   const DAY_COLORS = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500'];
@@ -319,6 +371,155 @@ export default function Home() {
 
         {/* Left panel — inputs */}
         <div className="space-y-4">
+
+          {/* Customize Fields */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <button onClick={() => setShowCustomize(v => !v)}
+              className="w-full border-l-4 border-emerald-500 px-4 pt-3 pb-2.5 flex items-center justify-between bg-white hover:bg-gray-50 transition text-left">
+              <div>
+                <h2 className="font-bold text-[#1f1f3d] text-sm">0. Customize Fields</h2>
+                <p className="text-xs text-gray-400 mt-0.5">AI-guided or manual — edit preferences & class types</p>
+              </div>
+              <span className="text-gray-400 text-xs">{showCustomize ? '▲' : '▼'}</span>
+            </button>
+
+            {showCustomize && (
+              <div className="px-4 pb-4 pt-2 space-y-4">
+
+                {/* AI Setup Chat */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Assistant</p>
+                  <p className="text-xs text-gray-500">Describe your program and the AI will suggest preferences and class types for you.</p>
+
+                  {/* Chat history */}
+                  {setupMessages.length > 0 && (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {setupMessages.map((m, i) =>
+                        m.role === 'user' ? (
+                          <div key={i} className="flex justify-end">
+                            <div className="bg-emerald-600 text-white text-xs px-3 py-2 rounded-2xl rounded-tr-sm max-w-[85%]">{m.content}</div>
+                          </div>
+                        ) : (
+                          <div key={i} className="flex gap-2 items-start">
+                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0 mt-0.5">
+                              <span className="text-white text-[9px]">✦</span>
+                            </div>
+                            <div className="bg-gray-50 border border-gray-100 text-gray-700 text-xs px-3 py-2 rounded-2xl rounded-tl-sm max-w-[85%]">{m.content}</div>
+                          </div>
+                        )
+                      )}
+                      {setupLoading && (
+                        <div className="flex gap-2 items-center">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0">
+                            <span className="text-white text-[9px]">✦</span>
+                          </div>
+                          <div className="flex gap-1 px-3 py-2 bg-gray-50 rounded-2xl border border-gray-100">
+                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                            <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Suggestions banner */}
+                  {setupSuggestions && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
+                      <p className="text-xs font-semibold text-emerald-800">Suggested Fields Ready</p>
+                      {setupSuggestions.preferences.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {setupSuggestions.preferences.map(p => (
+                            <span key={p} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{p}</span>
+                          ))}
+                        </div>
+                      )}
+                      {setupSuggestions.classTypes.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {setupSuggestions.classTypes.map(t => (
+                            <span key={t} className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={() => {
+                          if (setupSuggestions.preferences.length > 0) setCustomPreferences(setupSuggestions.preferences);
+                          if (setupSuggestions.classTypes.length > 0) setCustomClassTypes(setupSuggestions.classTypes);
+                          setSetupSuggestions(null);
+                        }} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">
+                          Apply Suggestions
+                        </button>
+                        <button onClick={() => setSetupSuggestions(null)}
+                          className="text-xs text-gray-400 hover:text-gray-600 px-2 transition">Dismiss</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {setupError && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{setupError}</p>}
+
+                  {/* Input */}
+                  <div className={`flex items-center gap-2 border rounded-xl px-3 py-2 transition-all ${setupLoading ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100'}`}>
+                    <input value={setupInput} onChange={e => setSetupInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && sendSetupMessage()}
+                      disabled={setupLoading}
+                      placeholder="e.g. We offer chess, robotics, ballet, and tutoring for K-8"
+                      className="flex-1 text-xs text-gray-900 placeholder:text-gray-400 bg-transparent focus:outline-none disabled:text-gray-400" />
+                    <button onClick={sendSetupMessage} disabled={setupLoading || !setupInput.trim()}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition shrink-0 ${setupInput.trim() && !setupLoading ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Manual: Activity Preferences */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Activity Preferences</p>
+                  <div className="flex flex-wrap gap-1">
+                    {customPreferences.map(pref => (
+                      <span key={pref} className="flex items-center gap-1 text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">
+                        {pref}
+                        <button onClick={() => setCustomPreferences(p => p.filter(x => x !== pref))} className="text-violet-400 hover:text-red-500 transition leading-none">✕</button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input value={newPrefInput} onChange={e => setNewPrefInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addPreference()}
+                      placeholder="Add preference..."
+                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300" />
+                    <button onClick={addPreference} disabled={!newPrefInput.trim()}
+                      className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
+                  </div>
+                </div>
+
+                {/* Manual: Class Types */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Class Types</p>
+                  <div className="flex flex-wrap gap-1">
+                    {customClassTypes.map(type => (
+                      <span key={type} className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+                        {type}
+                        <button onClick={() => setCustomClassTypes(t => t.filter(x => x !== type))} className="text-blue-400 hover:text-red-500 transition leading-none">✕</button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input value={newTypeInput} onChange={e => setNewTypeInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addClassType()}
+                      placeholder="Add class type..."
+                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    <button onClick={addClassType} disabled={!newTypeInput.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40 transition">+</button>
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
 
           {/* Students */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -382,7 +583,7 @@ export default function Home() {
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Preferences</label>
                     <div className="flex flex-wrap gap-1">
-                      {PREFERENCE_OPTIONS.map(pref => (
+                      {customPreferences.map(pref => (
                         <button key={pref} onClick={() => togglePreference(pref)}
                           className={`text-xs px-2 py-0.5 rounded-full border transition ${studentForm.preferences.includes(pref) ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-300 text-gray-600 hover:border-violet-400'}`}>
                           {pref}
@@ -462,7 +663,7 @@ export default function Home() {
                     <div>
                       <label className="text-xs text-gray-500 mb-0.5 block">Type</label>
                       <select value={classForm.type} onChange={e => setClassForm(f => ({ ...f, type: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        {CLASS_TYPES.map(t => <option key={t}>{t}</option>)}
+                        {customClassTypes.map(t => <option key={t}>{t}</option>)}
                       </select>
                     </div>
                   </div>
@@ -602,37 +803,40 @@ export default function Home() {
           )}
 
           {/* Chat — Perplexity/Gemini style */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0">
-                <span className="text-white text-sm leading-none">✦</span>
+          <div className="bg-gradient-to-br from-[#1f1f3d] to-[#2d2060] rounded-2xl border border-[#3a3670] shadow-lg overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center shrink-0 shadow-md">
+                <span className="text-white text-base leading-none">✦</span>
               </div>
-              <h2 className="font-semibold text-gray-800 text-sm">AI Scheduler Assistant</h2>
+              <div>
+                <h2 className="font-bold text-white text-sm">ClassMaker AI Assistant</h2>
+                <p className="text-[#a5b4fc] text-xs">Refine your schedule with natural language</p>
+              </div>
             </div>
 
             <div className="px-5 py-4 space-y-4 min-h-32 max-h-72 overflow-y-auto">
               {messages.length === 0 && (
                 <div className="text-center py-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center mx-auto mb-3">
-                    <span className="text-white text-xl leading-none">✦</span>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center mx-auto mb-3 shadow-md">
+                    <span className="text-white text-2xl leading-none">✦</span>
                   </div>
-                  <p className="text-sm text-gray-500">Generate a schedule, then ask me to refine it.</p>
-                  <p className="text-xs text-gray-400 mt-1">e.g. &quot;Move Emma out of Basketball on Tuesday&quot;</p>
+                  <p className="text-sm text-white/80">Generate a schedule, then ask me to refine it.</p>
+                  <p className="text-xs text-white/40 mt-1">e.g. &quot;Move Emma out of Basketball on Tuesday&quot;</p>
                 </div>
               )}
               {messages.map((m, i) =>
                 m.role === 'user' ? (
                   <div key={i} className="flex justify-end">
-                    <div className="bg-[#0073ea] text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] leading-relaxed">
+                    <div className="bg-violet-500 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] leading-relaxed">
                       {m.content}
                     </div>
                   </div>
                 ) : (
                   <div key={i} className="flex gap-2.5 items-start">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center shrink-0 mt-0.5">
                       <span className="text-white text-xs leading-none">✦</span>
                     </div>
-                    <div className="bg-gray-50 border border-gray-100 text-gray-700 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] leading-relaxed">
+                    <div className="bg-white/10 border border-white/10 text-white/90 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] leading-relaxed">
                       {m.content}
                     </div>
                   </div>
@@ -640,30 +844,30 @@ export default function Home() {
               )}
               {loading && schedule && (
                 <div className="flex gap-2.5 items-center">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center shrink-0">
                     <span className="text-white text-xs leading-none">✦</span>
                   </div>
-                  <div className="flex gap-1 px-4 py-3 bg-gray-50 rounded-2xl rounded-tl-sm border border-gray-100">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  <div className="flex gap-1 px-4 py-3 bg-white/10 rounded-2xl rounded-tl-sm border border-white/10">
+                    <span className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce [animation-delay:300ms]" />
                   </div>
                 </div>
               )}
             </div>
 
             <div className="px-4 pb-4">
-              <div className={`flex items-center gap-2 border rounded-2xl px-4 py-2.5 transition-all ${!schedule || loading ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 focus-within:border-[#0073ea] focus-within:ring-2 focus-within:ring-blue-100'}`}>
+              <div className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all ${!schedule || loading ? 'bg-white/5 border border-white/10' : 'bg-white/10 border border-white/20 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-500/30'}`}>
                 <input
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
                   placeholder={schedule ? 'Ask me to adjust the schedule...' : 'Generate a schedule first...'}
                   disabled={!schedule || loading}
-                  className="flex-1 text-sm text-gray-900 placeholder:text-gray-400 bg-transparent focus:outline-none disabled:text-gray-400"
+                  className="flex-1 text-sm text-white placeholder:text-white/30 bg-transparent focus:outline-none disabled:text-white/20"
                 />
                 <button onClick={sendMessage} disabled={!schedule || loading || !input.trim()}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 ${input.trim() && schedule && !loading ? 'bg-[#0073ea] hover:bg-[#0060c0] text-white' : 'bg-gray-200 text-gray-400'}`}>
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 ${input.trim() && schedule && !loading ? 'bg-violet-500 hover:bg-violet-400 text-white' : 'bg-white/10 text-white/30'}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                     <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                   </svg>
