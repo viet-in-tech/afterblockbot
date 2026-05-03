@@ -119,12 +119,89 @@ function ModeToggle({ mode, onChange }: { mode: 'csv' | 'manual'; onChange: (m: 
   );
 }
 
+const HEADER_ALIASES: Record<string, string> = {
+  // student name
+  student_name: 'name', full_name: 'name', student: 'name', first_last: 'name',
+  // grade
+  grade_level: 'grade', yr: 'grade', year: 'grade', gradelevel: 'grade',
+  // pickup_block
+  pickup: 'pickup_block', pickup_time: 'pickup_block', dismissal: 'pickup_block',
+  dismissal_block: 'pickup_block', latest_block: 'pickup_block', latest_pickup: 'pickup_block',
+  // goals
+  academic_goals: 'goals', goal: 'goals', learning_goals: 'goals',
+  // preferences
+  preference: 'preferences', interests: 'preferences', activities: 'preferences', activity_preferences: 'preferences',
+  // class name
+  class_name: 'name', activity: 'name', course: 'name', class: 'name', subject: 'name',
+  // day
+  weekday: 'day', week_day: 'day', day_of_week: 'day',
+  // block_start
+  start_block: 'block_start', start: 'block_start', time_start: 'block_start', block: 'block_start', start_time: 'block_start',
+  // block_end
+  end_block: 'block_end', end: 'block_end', time_end: 'block_end', end_time: 'block_end',
+  // grade_min
+  min_grade: 'grade_min', from_grade: 'grade_min', minimum_grade: 'grade_min',
+  // grade_max
+  max_grade: 'grade_max', to_grade: 'grade_max', maximum_grade: 'grade_max',
+  // capacity
+  max_students: 'capacity', slots: 'capacity', size: 'capacity', max_capacity: 'capacity', seats: 'capacity',
+  // type
+  category: 'type', activity_type: 'type', class_type: 'type', subject_type: 'type',
+};
+
+function canonicalizeHeader(h: string): string {
+  const key = h.trim().toLowerCase().replace(/[\s\-]+/g, '_');
+  return HEADER_ALIASES[key] ?? key;
+}
+
+function splitCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (const ch of line) {
+    if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+    else { current += ch; }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+function normalizeCSV(raw: string, requiredCols: string[]): { csv: string; missing: string[]; detected: string[] } {
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 1) return { csv: raw, missing: requiredCols, detected: [] };
+
+  const rawHeaders = splitCSVLine(lines[0]);
+  const canonical = rawHeaders.map(canonicalizeHeader);
+  const detected = canonical.filter(h => requiredCols.includes(h));
+  const missing = requiredCols.filter(col => !canonical.includes(col));
+
+  if (missing.length > 0) return { csv: raw, missing, detected };
+
+  const normalized = [
+    requiredCols.join(','),
+    ...lines.slice(1).map(line => {
+      const vals = splitCSVLine(line);
+      const row: Record<string, string> = {};
+      rawHeaders.forEach((h, i) => { row[canonicalizeHeader(h)] = vals[i] ?? ''; });
+      return requiredCols.map(col => row[col] ?? '').join(',');
+    }),
+  ].join('\n');
+
+  return { csv: normalized, missing: [], detected };
+}
+
+const STUDENT_COLS = ['name', 'grade', 'pickup_block', 'goals', 'preferences'];
+const CLASS_COLS = ['name', 'day', 'block_start', 'block_end', 'grade_min', 'grade_max', 'capacity', 'type'];
+
 export default function Home() {
   const [studentMode, setStudentMode] = useState<'csv' | 'manual'>('manual');
   const [classMode, setClassMode] = useState<'csv' | 'manual'>('manual');
 
   const [studentsCSV, setStudentsCSV] = useState('');
   const [classesCSV, setClassesCSV] = useState('');
+  const [studentsCSVWarning, setStudentsCSVWarning] = useState<string | null>(null);
+  const [classesCSVWarning, setClassesCSVWarning] = useState<string | null>(null);
 
   const [manualStudents, setManualStudents] = useState<ManualStudent[]>([]);
   const [studentForm, setStudentForm] = useState<ManualStudent>(EMPTY_STUDENT);
@@ -140,11 +217,25 @@ export default function Home() {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const handleFileUpload = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (
+    setter: (val: string) => void,
+    warnSetter: (w: string | null) => void,
+    requiredCols: string[]
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setter(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const raw = ev.target?.result as string;
+      const { csv, missing } = normalizeCSV(raw, requiredCols);
+      if (missing.length > 0) {
+        warnSetter(`Missing columns: ${missing.join(', ')}. Please check your CSV.`);
+        setter('');
+      } else {
+        warnSetter(null);
+        setter(csv);
+      }
+    };
     reader.readAsText(file);
   };
 
@@ -244,9 +335,10 @@ export default function Home() {
                       <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
                     </svg>
                     {studentsCSV ? 'Replace Students CSV' : 'Upload Students CSV'}
-                    <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV)} className="sr-only" />
+                    <input type="file" accept=".csv" onChange={handleFileUpload(setStudentsCSV, setStudentsCSVWarning, STUDENT_COLS)} className="sr-only" />
                   </label>
-                  {studentsCSV && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+                  {studentsCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{studentsCSVWarning}</p>}
+                  {studentsCSV && !studentsCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
                   <div className="mt-2 p-2.5 bg-violet-50 rounded-lg text-xs text-gray-600 space-y-1 border border-violet-100">
                     <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
                     <ul className="space-y-0.5 list-none">
@@ -330,9 +422,10 @@ export default function Home() {
                       <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
                     </svg>
                     {classesCSV ? 'Replace Classes CSV' : 'Upload Classes CSV'}
-                    <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV)} className="sr-only" />
+                    <input type="file" accept=".csv" onChange={handleFileUpload(setClassesCSV, setClassesCSVWarning, CLASS_COLS)} className="sr-only" />
                   </label>
-                  {classesCSV && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
+                  {classesCSVWarning && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">{classesCSVWarning}</p>}
+                  {classesCSV && !classesCSVWarning && <p className="text-xs text-emerald-600 flex items-center gap-1"><span>✓</span> File loaded successfully</p>}
                   <div className="mt-2 p-2.5 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-1 border border-blue-100">
                     <p className="font-semibold text-gray-700">Required CSV columns (in order):</p>
                     <ul className="space-y-0.5 list-none">
