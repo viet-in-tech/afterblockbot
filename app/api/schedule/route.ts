@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       model: groq('llama-3.3-70b-versatile'),
       system: SYSTEM_PROMPT,
       messages: apiMessages,
-      maxOutputTokens: 32768,
+      maxOutputTokens: 9500,
     });
 
     try {
