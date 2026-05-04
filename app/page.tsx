@@ -476,6 +476,7 @@ export default function Home() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-6 py-12">
           <div className="text-center mb-10">
+            <p className="text-[4rem] md:text-[5.5rem] font-bold tracking-[-0.03em] bg-gradient-to-r from-red-500 via-violet-600 to-blue-600 bg-clip-text text-transparent leading-none mb-3">ClassMaker.ai</p>
             <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-[#1d1d1f] mb-3">Every student, perfectly placed.</h2>
             <p className="text-gray-500 text-base max-w-2xl mx-auto leading-relaxed">ClassMaker AI helps afterschool programs, enrichment centers, and school coordinators build smart weekly schedules in seconds — no spreadsheets, no back-and-forth.</p>
           </div>
