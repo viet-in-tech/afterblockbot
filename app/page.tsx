@@ -1011,7 +1011,7 @@ export default function Home() {
       <div className="bg-gradient-to-br from-[#0f0c29] via-[#1a1040] to-[#0d1b4b] mt-2">
         <div className="max-w-4xl mx-auto px-6 py-14">
           <div className="max-w-2xl">
-            <span className="inline-block text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-5">Our Story</span>
+            <span className="inline-block text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-5">Origin Story</span>
             <h2 className="text-2xl font-bold tracking-[-0.02em] text-white mb-5">
               Why ClassMaker AI?
             </h2>
