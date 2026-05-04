@@ -75,10 +75,9 @@ export async function POST(req: NextRequest) {
     }
 
     const { text } = await generateText({
-      model: groq('llama-3.3-70b-versatile'),
+      model: groq('llama-3.1-8b-instant'),
       system: SYSTEM_PROMPT,
       messages: apiMessages,
-      maxOutputTokens: 9500,
     });
 
     try {
