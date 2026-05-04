@@ -76,11 +76,13 @@ export async function POST(req: NextRequest) {
       model: groq('llama-3.3-70b-versatile'),
       system: SYSTEM_PROMPT,
       messages: apiMessages,
+      maxOutputTokens: 8000,
     });
 
     try {
-      const cleaned = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-      const parsed = JSON.parse(cleaned);
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON object found');
+      const parsed = JSON.parse(jsonMatch[0]);
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json({ error: 'Model returned non-JSON', raw: text }, { status: 500 });
