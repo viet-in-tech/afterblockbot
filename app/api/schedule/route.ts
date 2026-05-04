@@ -4,6 +4,8 @@ import { groq } from '@ai-sdk/groq';
 
 export const maxDuration = 60;
 
+const BATCH_SIZE = 25;
+
 const SYSTEM_PROMPT = `You are ClassMaker.ai, an AI scheduling assistant for afterschool programs.
 
 ## Schedule Structure
@@ -46,50 +48,81 @@ Respond ONLY with valid JSON — no markdown, no code blocks, no extra text:
   "message": "Brief explanation to the coordinator of what was scheduled or changed."
 }`;
 
+type ApiMessage = { role: 'user' | 'assistant'; content: string };
+
+function splitCSVIntoBatches(csv: string): string[] {
+  const lines = csv.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length <= 1) return [csv];
+  const header = lines[0];
+  const rows = lines.slice(1);
+  const batches: string[] = [];
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    batches.push([header, ...rows.slice(i, i + BATCH_SIZE)].join('\n'));
+  }
+  return batches;
+}
+
+function extractBatchNames(batchCSV: string): string[] {
+  return batchCSV.trim().split(/\r?\n/).slice(1).filter(Boolean).map(l => l.split(',')[0].trim());
+}
+
+function parseModelJSON(text: string) {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`No JSON found. Preview: ${text.slice(0, 300)}`);
+  return JSON.parse(jsonMatch[0]);
+}
+
+async function runBatch(apiMessages: ApiMessage[]) {
+  const { text } = await generateText({
+    model: groq('llama-3.1-8b-instant'),
+    system: SYSTEM_PROMPT,
+    messages: apiMessages,
+  });
+  return parseModelJSON(text);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { studentsCSV, classesCSV, messages, currentSchedule, weekLabel } = await req.json();
 
     const weekLine = weekLabel ? `\nSCHEDULE WEEK: ${weekLabel}` : '';
-    const dataContext = `STUDENT ROSTER:\n${studentsCSV}\n\nCLASS CATALOG:\n${classesCSV}${weekLine}`;
+    const batches = splitCSVIntoBatches(studentsCSV);
 
-    type ApiMessage = { role: 'user' | 'assistant'; content: string };
-    let apiMessages: ApiMessage[];
+    const allStudents: unknown[] = [];
+    let lastMessage = '';
 
-    if (!currentSchedule) {
-      apiMessages = [{
-        role: 'user',
-        content: `${dataContext}\n\nPlease generate a complete weekly schedule for all students.`,
-      }];
-    } else {
-      apiMessages = [
-        {
+    for (const batchCSV of batches) {
+      const dataContext = `STUDENT ROSTER:\n${batchCSV}\n\nCLASS CATALOG:\n${classesCSV}${weekLine}`;
+      let apiMessages: ApiMessage[];
+
+      if (!currentSchedule) {
+        apiMessages = [{
           role: 'user',
-          content: `${dataContext}\n\nCurrent schedule:\n${JSON.stringify(currentSchedule.students, null, 2)}\n\nPlease apply the coordinator's refinement request below.`,
-        },
-        ...messages.map((m: { role: string; content: string }) => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
-      ];
+          content: `${dataContext}\n\nPlease generate a complete weekly schedule for all students in this roster.`,
+        }];
+      } else {
+        const batchNames = extractBatchNames(batchCSV);
+        const batchSchedule = currentSchedule.students.filter(
+          (s: { name: string }) => batchNames.includes(s.name)
+        );
+        apiMessages = [
+          {
+            role: 'user',
+            content: `${dataContext}\n\nCurrent schedule:\n${JSON.stringify(batchSchedule, null, 2)}\n\nPlease apply the coordinator's refinement request below.`,
+          },
+          ...messages.map((m: { role: string; content: string }) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+        ];
+      }
+
+      const parsed = await runBatch(apiMessages);
+      allStudents.push(...(parsed.students ?? []));
+      lastMessage = parsed.message ?? '';
     }
 
-    const { text } = await generateText({
-      model: groq('llama-3.1-8b-instant'),
-      system: SYSTEM_PROMPT,
-      messages: apiMessages,
-    });
-
-    try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON object found');
-      const parsed = JSON.parse(jsonMatch[0]);
-      return NextResponse.json(parsed);
-    } catch {
-      const preview = text?.slice(0, 300) ?? '(empty)';
-      console.error('Non-JSON response preview:', preview);
-      return NextResponse.json({ error: `Model returned non-JSON. Preview: ${preview}` }, { status: 500 });
-    }
+    return NextResponse.json({ students: allStudents, message: lastMessage });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('ClassMaker.ai API error:', message);
