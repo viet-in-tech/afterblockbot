@@ -482,18 +482,18 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             <div className="rounded-2xl p-6 border-t-4 border-red-500 bg-red-50">
               <div className="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center mb-4"><span className="text-red-500 text-lg">⚡</span></div>
-              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">From roster to schedule in seconds</h3>
-              <p className="text-gray-500 text-xs leading-relaxed">Enter your students and available classes — manually or by uploading a CSV. The AI reads each student&apos;s grade, pickup time, and activity preferences, then builds a complete weekly schedule that respects every constraint automatically.</p>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">Step 1 — Add your info</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">Enter your students and classes manually, or upload a CSV. Include grades, pickup times, activity preferences, class capacity, and more.</p>
             </div>
             <div className="rounded-2xl p-6 border-t-4 border-violet-500 bg-violet-50">
               <div className="w-10 h-10 rounded-2xl bg-violet-100 flex items-center justify-center mb-4"><span className="text-violet-500 text-lg">✦</span></div>
-              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">Adjust with plain English</h3>
-              <p className="text-gray-500 text-xs leading-relaxed">Need to make a change? Just type it. Say &ldquo;Move Emma out of Basketball on Tuesday&rdquo; or &ldquo;Give all 3rd graders a study block on Mondays&rdquo; — the AI updates the schedule instantly, no re-entering data required.</p>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">Step 2 — Generate</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">Hit Generate. The AI Agent reads every constraint — grades, capacity, pickup times, preferences — and builds your complete Master Schedule in seconds.</p>
             </div>
             <div className="rounded-2xl p-6 border-t-4 border-teal-500 bg-teal-50">
               <div className="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center mb-4"><span className="text-teal-500 text-lg">🗓️</span></div>
-              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">See the full picture</h3>
-              <p className="text-gray-500 text-xs leading-relaxed">View each student&apos;s personal weekly schedule, then switch to the Master Schedule to see every class running across the whole week — so coordinators and principals always have the full picture.</p>
+              <h3 className="text-[#1d1d1f] font-semibold text-sm mb-2 tracking-[-0.01em]">Step 3 — Refine & export</h3>
+              <p className="text-gray-500 text-xs leading-relaxed">Review each student&apos;s schedule. Type any change in plain English and the AI updates instantly. Export the final Master Schedule as a CSV.</p>
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-2 mb-8">
