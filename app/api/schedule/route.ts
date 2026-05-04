@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { groq } from '@ai-sdk/groq';
 
+export const maxDuration = 60;
+
 const SYSTEM_PROMPT = `You are ClassMaker.ai, an AI scheduling assistant for afterschool programs.
 
 ## Schedule Structure
@@ -76,7 +78,7 @@ export async function POST(req: NextRequest) {
       model: groq('llama-3.3-70b-versatile'),
       system: SYSTEM_PROMPT,
       messages: apiMessages,
-      maxOutputTokens: 8000,
+      maxOutputTokens: 32768,
     });
 
     try {
@@ -85,7 +87,9 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(jsonMatch[0]);
       return NextResponse.json(parsed);
     } catch {
-      return NextResponse.json({ error: 'Model returned non-JSON', raw: text }, { status: 500 });
+      const preview = text?.slice(0, 300) ?? '(empty)';
+      console.error('Non-JSON response preview:', preview);
+      return NextResponse.json({ error: `Model returned non-JSON. Preview: ${preview}` }, { status: 500 });
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
